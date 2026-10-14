@@ -72,9 +72,14 @@ exit /b 0
 :nopython
 echo   Slipway needs Python 3.10 or newer, and it was not found.
 echo.
-echo   1. Get it from https://www.python.org/downloads/
-echo   2. Run the installer and tick "Add python.exe to PATH" (and leave "tcl/tk" ticked).
-echo   3. Run install.bat again.
+echo   1. Download Python from https://www.python.org/downloads/ (the big yellow button).
+echo   2. Open the installer. On its FIRST screen, at the bottom, tick the box
+echo      "Add python.exe to PATH". It is not ticked by default, and Slipway cannot
+echo      find Python without it. Then click "Install Now".
+echo   3. Close the installer, then double-click install.bat again.
+echo.
+echo   Already installed Python but forgot the box? Run the Python installer again,
+echo   choose "Modify", click Next, and tick "Add Python to environment variables".
 echo.
 pause
 exit /b 1

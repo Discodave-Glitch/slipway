@@ -17,7 +17,7 @@ from tkinter import filedialog, simpledialog, ttk
 from . import catalog, catalogue, dialogs, flasher, github, library, recovery_guide
 
 COLS = (("tick", "On FM-1", 66), ("name", "Firmware", 130), ("author", "Made by", 150), ("version", "Latest", 80),
-        ("released", "Released", 105), ("kind", "Type", 100), ("keys", "Keys it uses", 120), ("infolder", "In folder", 70), ("description", "What it is", 240))
+        ("released", "Released", 120), ("kind", "Type", 100), ("keys", "Keys it uses", 120), ("infolder", "In folder", 70), ("description", "What it is", 240))
 FCOLS = (("name", "File", 200), ("version", "Version", 90), ("size", "Size", 80), ("note", "Note", 420))
 
 # Day: sand and chart paper with navy ink.  Night: deep navy water with brass and sea-glass.

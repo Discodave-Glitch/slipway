@@ -13,11 +13,20 @@ WHERE THE LIST COMES FROM
   Only a few firmwares have had their key use and recovery steps read (Felucca, X0X, FiMba-1). The rest say
   "not checked" and ask for an extra confirmation.
 
-FIRST TIME (Windows): install Python 3.10+ (python.org, tick "Add python.exe to PATH"), unzip this folder somewhere
-  you want to keep it, then double-click install.bat. It installs the two MIDI libraries, puts a "Slipway" shortcut
-  with the sailboat logo on your Desktop and in the Start menu, and starts the app. After that, use the shortcut.
-  It also makes the "firmware" folder next to the app straight away (run_slipway.bat does too, and the zip already
-  contains an empty one). (run_slipway.bat still starts it without a shortcut.) To remove it, delete the two shortcuts and this folder.
+FIRST TIME (Windows) - four steps
+  1. Install Python (a free program Slipway runs on). Go to python.org/downloads and click the big yellow button.
+     Open the file it downloads. On the FIRST screen of the installer, at the bottom, TICK the box
+     "Add python.exe to PATH" (it is not ticked by default, and Slipway cannot find Python without it).
+     Then click "Install Now". Already installed Python without ticking it? Run the installer again, choose
+     "Modify", click Next, and tick "Add Python to environment variables".
+  2. Unzip the Slipway zip somewhere you want to keep it (right-click it, "Extract All"). Don't run it from inside
+     the zip.
+  3. Double-click install.bat. It installs the two MIDI libraries, puts a "Slipway" shortcut with the sailboat logo
+     on your Desktop and in the Start menu, and starts the app. If Windows says "Windows protected your PC", click
+     "More info" then "Run anyway" (it is an unsigned script).
+  4. After that, use the Desktop or Start-menu shortcut. (run_slipway.bat starts it without a shortcut.)
+  The "firmware" folder next to the app is made straight away (the zip already contains an empty one).
+  To remove Slipway, delete the two shortcuts and this folder.
 
 USING IT
   - The top list: firmware, who made it, latest version, KEYS IT USES, whether it is already in your folder, and
