@@ -98,6 +98,18 @@ SECTIONS = [
         "  sha256sum backup.bin backup2.bin app_v15.bin verify.bin",
         "Power the FM-1 off and on without the cable (Step 7). Delete the VM when you are happy.",
     ]),
+    ("Plan C - You only have a Mac (macOS is not supported by the tool)", [
+        "jl-uboot-tool does not work on macOS, so the steps above cannot be run directly on a Mac. NOT tested by the author. Options:",
+        "1. Easiest: borrow a Windows or Linux PC for 20 minutes and follow Steps 1-7 there.",
+        "2. Intel Mac: do Plan B with VirtualBox for macOS (virtualbox.org). Use the same VM settings and Ubuntu commands; "
+        "the shared folder is your Mac folder with app_v15.bin (make that file on any PC, or on the Mac with "
+        "python3 fm1_extract_app.py FM-1.fwsc app_v15.bin). macOS may ask you to allow VirtualBox in "
+        "System Settings -> Privacy & Security, and to allow USB access.",
+        "3. Apple Silicon Mac (M1 and newer): VirtualBox is not suitable. UTM (mac.getutm.app) with an Ubuntu ARM image "
+        "can pass a USB device through (UTM: USB icon -> choose WL82 UBOOT1.00). Then follow Plan B from step 6 inside Ubuntu. "
+        "This is the least certain route; if it will not see the device, use option 1.",
+        "In every case the golden rules stay: back up twice and compare hashes, write at 0x4000 only, verify the hash.",
+    ]),
     ("If the FM-1 still will not start afterwards", [
         "A known cause: leftover data from an old Felucca 0.9-beta stops newer Felucca firmware from starting. The fix "
         "(after the backup above) is to erase two small data areas, then power-cycle:",

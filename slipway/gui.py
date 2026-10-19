@@ -921,7 +921,7 @@ class Slipway:
                       highlightthickness=0, font=(self.family, 10), yscrollcommand=sb.set, cursor="arrow")
         txt.pack(side="left", fill="both", expand=True)
         sb.configure(command=txt.yview)
-        mono = ("Consolas" if sys.platform.startswith("win") else "DejaVu Sans Mono", 10)
+        mono = ("Consolas" if sys.platform.startswith("win") else "Menlo" if sys.platform == "darwin" else "DejaVu Sans Mono", 10)
         txt.tag_configure("title", font=(self.family, 15, "bold"), foreground=p["brass"], spacing3=6)
         txt.tag_configure("head", font=(self.family, 11, "bold"), foreground=p["brass"], spacing1=14, spacing3=4)
         txt.tag_configure("code", font=mono, background=p["bg"], lmargin1=24, lmargin2=24, spacing1=2, spacing3=2)

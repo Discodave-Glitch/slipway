@@ -28,13 +28,16 @@ on your computer only.
 
 | What | Who | Licence |
 |---|---|---|
-| `slipway/ship_bell.wav` | Freesound community, "ship-bell-two-chimes-102730" | See the source page for its terms (see below) |
+| `slipway/ship_bell.wav` | "Ship Bell Two Chimes" by Sojan (via Freesound / Pixabay) | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
 | Code, sailboat logo and icon | the Slipway author | MIT |
 
 ### About the ship bell
-The bell was downloaded as `freesound_community-ship-bell-two-chimes-102730.mp3` and converted to WAV. Check its page
-for the current licence before redistributing. If its terms do not allow it, delete `ship_bell.wav`:
-Slipway runs fine without it, it just stays quiet.
+The bell is [Ship Bell Two Chimes](https://pixabay.com/sound-effects/film-special-effects-ship-bell-two-chimes-102730/)
+by Sojan (Freesound, uploaded to Pixabay as freesound_community), used under the Pixabay Content License. That licence
+allows free use and modification without attribution (credit is given here anyway), but does not allow distributing the
+sound on its own, unchanged. Slipway ships it only as the converted, built-in alert sound of the app. If you reuse the app's
+files, do not redistribute `ship_bell.wav` as a standalone sound. The licence does not cover it under MIT: it stays under
+Pixabay's terms. If you prefer, delete `ship_bell.wav` and Slipway just stays quiet.
 
 ## Not affiliated
 Slipway is not made, endorsed or supported by M-VAVE or by the Felucca project. "M-VAVE", "FM-1" and "Felucca" are

@@ -13,7 +13,7 @@ WHERE THE LIST COMES FROM
   Only a few firmwares have had their key use and recovery steps read (Felucca, X0X, FiMba-1). The rest say
   "not checked" and ask for an extra confirmation.
 
-FIRST TIME (Windows) - four steps
+FIRST TIME (Windows) - four steps  (Mac? see FIRST TIME ON A MAC below)
   1. Install Python (a free program Slipway runs on). Go to python.org/downloads and click the big yellow button.
      Open the file it downloads. On the FIRST screen of the installer, at the bottom, TICK the box
      "Add python.exe to PATH" (it is not ticked by default, and Slipway cannot find Python without it).
@@ -27,6 +27,25 @@ FIRST TIME (Windows) - four steps
   4. After that, use the Desktop or Start-menu shortcut. (run_slipway.bat starts it without a shortcut.)
   The "firmware" folder next to the app is made straight away (the zip already contains an empty one).
   To remove Slipway, delete the two shortcuts and this folder.
+
+FIRST TIME ON A MAC - four steps   (written for macOS 11 or newer; NOT yet tested on a real Mac - please report problems)
+  1. Install Python: go to python.org/downloads/macos, download the macOS installer, open it and click Continue
+     until it finishes. (No PATH box on a Mac. Apple's built-in python3 is too old for the window, so Slipway
+     skips it. Homebrew users: brew install python python-tk)
+  2. Unzip Slipway.zip somewhere you want to keep it (double-click it), e.g. your Documents folder.
+  3. RIGHT-CLICK install.command, choose Open, then click Open again (macOS warns about unsigned scripts; a
+     plain double-click is refused the first time). It makes a private environment, installs the two MIDI
+     libraries, makes the firmware folder, puts "Slipway" (with the sailboat logo) in your Applications folder
+     (~/Applications) and starts the app. If macOS still blocks it: System Settings -> Privacy & Security ->
+     scroll down -> "Open Anyway".
+  4. After that, open Slipway from Spotlight or Applications (drag it to the Dock if you like).
+     run_slipway.command starts it without the app. Keep the Slipway folder where it is: the app uses it.
+  Your saved stock firmware and settings live in ~/Library/Application Support/Slipway.
+  The FM-1 is a normal USB-MIDI device, so no driver is needed. If "Launch on FM-1" cannot see it, try another
+  cable/port, and make sure the FM-1 is in update mode as the firmware's README says.
+  Black-screen recovery on a Mac: the recovery tool (jl-uboot-tool) does not support macOS. Use a Windows or
+  Linux PC, or a Linux virtual machine (see "Plan C" in the Full recovery guide inside Stuck? Rescue).
+  To remove Slipway: delete ~/Applications/Slipway.app and this folder.
 
 USING IT
   - The top list: firmware, who made it, latest version, KEYS IT USES, whether it is already in your folder, and
@@ -50,9 +69,9 @@ USING IT
   - "Find more on GitHub" searches for other FM-1 firmware. "+ Add repo" adds one by address.
   - NEW ONES: the "Released" column shows each firmware's release date, with NEW beside anything from the last 30 days.
     Click "Released" to put the newest first (click again to reverse). Firmware with no date always stays at the bottom.
-  - SHIP'S BELL: warnings and errors ring a ship's bell (two chimes, slipway\ship_bell.wav) instead of the Windows chime.
-    Plain information boxes stay quiet. The bell is a Freesound community recording ("ship-bell-two-chimes-102730"),
-    converted to WAV. To use a different sound, replace that file with another WAV. To turn the bell off, set an
+  - SHIP'S BELL: warnings and errors ring a ship's bell (two chimes, slipway\ship_bell.wav) instead of the system chime (Windows, or afplay on a Mac).
+    Plain information boxes stay quiet. The bell is "Ship Bell Two Chimes" by Sojan (Freesound, via Pixabay, Pixabay Content
+    License), converted to WAV. To use a different sound, replace that file with another WAV. To turn the bell off, set an
     environment variable SLIPWAY_QUIET=1.
   - WINDOW SIZE: the window won't shrink below the size where every button stays whole and readable.
   - SORTING: click a column heading to sort by it, click again to reverse (an arrow shows which). For "On FM-1" and
