@@ -13,7 +13,7 @@ WHERE THE LIST COMES FROM
   Only a few firmwares have had their key use and recovery steps read (Felucca, X0X, FiMba-1). The rest say
   "not checked" and ask for an extra confirmation.
 
-FIRST TIME (Windows) - four steps  (Mac? see FIRST TIME ON A MAC below)
+FIRST TIME (Windows) - four steps  (Mac? see FIRST TIME ON A MAC below. Android phone? see ON ANDROID below)
   1. Install Python (a free program Slipway runs on). Go to python.org/downloads and click the big yellow button.
      Open the file it downloads. On the FIRST screen of the installer, at the bottom, TICK the box
      "Add python.exe to PATH" (it is not ticked by default, and Slipway cannot find Python without it).
@@ -32,7 +32,7 @@ FIRST TIME (Windows) - four steps  (Mac? see FIRST TIME ON A MAC below)
   The "firmware" folder next to the app is made straight away (the zip already contains an empty one).
   To remove Slipway, delete the two shortcuts and this folder.
 
-FIRST TIME ON A MAC - four steps   (written for macOS 11 or newer; NOT yet tested on a real Mac - please report problems)
+FIRST TIME ON A MAC - four steps   (tested on a real MacBook Air, Apple silicon, Python from python.org; Intel Macs not yet tried - please report problems)
   1. Install Python: go to python.org/downloads/macos, download the macOS installer, open it and click Continue
      until it finishes. (No PATH box on a Mac. Apple's built-in python3 is too old for the window, so Slipway
      skips it. Homebrew users: brew install python python-tk)
@@ -50,6 +50,34 @@ FIRST TIME ON A MAC - four steps   (written for macOS 11 or newer; NOT yet teste
   Black-screen recovery on a Mac: the recovery tool (jl-uboot-tool) does not support macOS. Use a Windows or
   Linux PC, or a Linux virtual machine (see "Plan C" in the Full recovery guide inside Stuck? Rescue).
   To remove Slipway: delete ~/Applications/Slipway.app and this folder.
+
+ON ANDROID (test version) - nothing to install
+  It runs as a web page in Chrome on Android. Tested on one real Android phone with a real FM-1: the firmware list
+  loaded (79 firmwares), SLOOP 2.7.1 was downloaded from the list and installed, the official V15 was put back, and
+  the FM-1 worked normally each time. Only one phone has been tried.
+  You need: Chrome on the phone; a USB DATA cable (some only charge), with a USB-OTG adapter if your phone needs one;
+  and the official FM-1.fwsc from M-VAVE's download page saved on the phone (your way back).
+  1. In Chrome on the phone go to  https://discodave-glitch.github.io/slipway/app/
+     (Optional: Chrome menu -> Add to Home screen for an app icon.)
+  2. Plug the FM-1 into the phone and switch it on.
+  3. Step 1 "Your FM-1": press "Find my FM-1" and allow MIDI (with SysEx) when Chrome asks. It should say
+     FM-1_015 official V15, or the custom firmware that is on it now.
+  4. Step 2 "Stock V15": press "Choose the official FM-1.fwsc" and pick the M-VAVE file. (M-VAVE's site may call it
+     V16; inside the file it is FM-1_015, 699,956 bytes.) It is checked byte for byte and kept in the browser as your
+     way back. A custom firmware cannot be installed until this is done.
+  5. Step 3 "Pick a firmware": the list loads from the public catalogue. Search if you like, tap a firmware, read its
+     note, press "Get this firmware". It is downloaded and checked against the catalogue's SHA-256. (Or use
+     "Choose a firmware file from your phone" in step 4.)
+  6. Step 4 "Install": read the firmware's own README (how to enter update mode, how to get back to stock), tick the
+     box, press Install, confirm, and DO NOT unplug anything or let the screen sleep while it writes. Then press
+     "Find my FM-1" to see what is on it.
+  7. To go back: press "Put stock V15 back".
+  If something goes wrong: an old page (open the address in an Incognito tab; the footer shows the page version);
+  "Couldn't load the firmware list" (press Try again, see the Technical log at the bottom; you can still choose a
+  file yourself); FM-1 not found (use a data cable, switch the FM-1 on first, allow MIDI with SysEx, use Chrome);
+  no Downloads in the file picker on a work-profile phone (use the picker's Work tab); a write that stopped halfway
+  (do not unplug: press Find my FM-1 and follow the message, or open Stuck? Rescue). Black-screen recovery needs a
+  Windows or Linux PC. More: README_ANDROID.md. The web version is GPL-3.0 (it embeds Felucca's installer code).
 
 USING IT
   - The top list: firmware, who made it, latest version, KEYS IT USES, whether it is already in your folder, and

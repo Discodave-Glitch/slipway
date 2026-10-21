@@ -44,7 +44,7 @@ walks you through getting the FM-1 running again, even from a black screen.
 
 > **V15 or V16?** In Slipway, "stock V15" means the official FM-1 firmware file whose contents match exactly: 699,956 bytes, SHA-256 `db1642b2...edb8a`, identifier `FM-1_015` inside the file. M-VAVE's download page may label that same file **V16**: the number on the website is not the identifier inside the file. This was tested on a real Mac and FM-1 with the `FM-1.fwsc` downloaded from M-VAVE's site (labelled V16 there): Slipway accepted it, put it on the FM-1, and the FM-1 then reported `FM-1_015`. Slipway checks the file's contents, not its name or the website label. If you choose a file and Slipway refuses it, it shows the file's size and fingerprint: that means it is a different file, which has not been tested.
 
-> **Android (test version):** [Slipway Web](https://discodave-glitch.github.io/slipway/app/) runs in Chrome on Android over a USB-OTG cable. Tested on one real Android phone (Chrome, USB-OTG cable) with a real FM-1: it found the FM-1, accepted the official `FM-1.fwsc` as the way back, and put the official firmware back from custom firmware (SLOOP); the FM-1 restarted and worked normally. It also lists the same public firmware catalogue as the desktop apps (79 firmwares when tested): tap one, **Get this firmware**, and the download is checked against the catalogue's SHA-256 before it can be installed. On that phone, a custom firmware (SLOOP 2.7.1) was downloaded from the list and installed, and the official V15 was put back. Only one phone has been tried. See [README_ANDROID.md](README_ANDROID.md).
+> **Android:** there is a phone version too, see [Install (Android)](#install-android-test-version) below. No download or installer needed.
 
 ## Install (Mac)
 > Tested on a real Mac: a MacBook Air (Apple silicon, Python 3.15 from python.org): app, firmware list, FM-1 detection, put stock V15 back and install a custom firmware all worked. Not yet tried on an Intel Mac - please [open an issue](../../issues) if anything goes wrong.
@@ -67,6 +67,27 @@ walks you through getting the FM-1 running again, even from a black screen.
 
 The black-screen USB recovery tool does not support macOS: use a Windows/Linux PC or a Linux virtual machine
 (see the in-app recovery guide, *Plan C*).
+
+## Install (Android, test version)
+Nothing to install: it runs as a web page in **Chrome on Android**. Tested on one real Android phone with a real FM-1: the firmware list loaded (79 firmwares), SLOOP 2.7.1 was downloaded from the list and installed, the official V15 was put back, and the FM-1 worked normally each time. Only one phone has been tried.
+
+**You need:** Chrome on the phone, a USB **data** cable (some cables only charge) with a USB-OTG adapter if your phone needs one, and the official `FM-1.fwsc` from M-VAVE's download page saved on the phone (it is your way back).
+1. On the phone, open Chrome and go to **[discodave-glitch.github.io/slipway/app](https://discodave-glitch.github.io/slipway/app/)**. Optional: Chrome menu -> *Add to Home screen* for an app icon.
+2. Connect the FM-1 to the phone with the cable and switch the FM-1 on.
+3. **Step 1 - Your FM-1:** press **Find my FM-1** and allow MIDI (with SysEx) when Chrome asks. It should say `FM-1_015 official V15` (or the custom firmware that is on it now).
+4. **Step 2 - Stock V15:** press **Choose the official FM-1.fwsc** and pick the file from M-VAVE (it is checked byte for byte and kept in the browser as your way back). M-VAVE's site may call it V16; inside the file it is `FM-1_015`, 699,956 bytes. A custom firmware cannot be installed until this is done.
+5. **Step 3 - Pick a firmware:** the list loads from the public catalogue. Search if you like, tap a firmware, read its note, press **Get this firmware**. It is downloaded and checked against the catalogue's SHA-256. (Or skip the list and use **Choose a firmware file from your phone** in step 4.)
+6. **Step 4 - Install:** read the firmware's own README (how to enter update mode and get back to stock), tick the box, press **Install**, confirm, and **do not unplug anything or let the screen sleep** while it writes. Then press **Find my FM-1** again to see what is on it.
+7. To go back: **Put stock V15 back**.
+
+**If something goes wrong on Android**
+- *Still shows an old page*: open the address in a Chrome Incognito tab. The footer shows the page version.
+- *"Couldn't load the firmware list"*: press **Try again**; open **Technical log** at the bottom to see why. You can still choose a `.fwsc` file yourself.
+- *The FM-1 is not found / MIDI blocked*: use a data cable, switch the FM-1 on first, allow MIDI with SysEx, and use Chrome (other mobile browsers may not support it).
+- *The file picker shows no Downloads (work profile phones)*: use the picker's **Work** tab, or save the file in your personal storage.
+- *A write stopped halfway*: don't unplug. Press **Find my FM-1** and follow the message (resume), or open **Stuck? Rescue**. Black-screen recovery needs a Windows or Linux PC (recovery guide).
+
+More detail: [README_ANDROID.md](README_ANDROID.md). The web version is GPL-3.0 (it embeds Felucca's installer code); the desktop apps are MIT.
 
 > **Need more detail?** The full, step-by-step guide is **[README.txt](README.txt)**: how the list works, safety
 > confirmations, the firmware folder, Stuck? Rescue, and what to do if your FM-1 shows a black screen.

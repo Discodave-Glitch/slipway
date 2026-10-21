@@ -11,6 +11,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 main{max-width:560px;margin:0 auto;padding:32px 16px}
 h1{color:var(--brass);margin:0 0 4px}
 .card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
+ol{padding-left:20px;margin:8px 0}
 a.btn{display:inline-block;margin-top:6px;padding:12px 18px;border:1px solid var(--brass);border-radius:10px;color:var(--ink);font-weight:600;text-decoration:none}
 a{color:var(--accent)}
 </style>
@@ -22,7 +23,13 @@ a{color:var(--accent)}
   <div class="card">
     <strong>Android or Chrome (test version)</strong>
     <p>Install firmware from your phone or a computer using Chrome. Includes the firmware list: pick a firmware, download it, and install it. Tested on one real Android phone (found the FM-1, downloaded and installed a custom firmware, and put the official firmware back).</p>
+    <ol>
+      <li>Use <b>Chrome</b> on the phone, a USB <b>data</b> cable (and a USB-OTG adapter if needed), and the official <code>FM-1.fwsc</code> from M-VAVE saved on the phone.</li>
+      <li>Plug in the FM-1, switch it on, open Slipway Web and press <b>Find my FM-1</b> (allow MIDI).</li>
+      <li>Choose the official <code>FM-1.fwsc</code> (step 2), pick a firmware from the list (step 3), then <b>Install</b> (step 4). Don't unplug while it writes.</li>
+    </ol>
     <a class="btn" href="app/">Open Slipway Web</a>
+    <p><a href="https://github.com/Discodave-Glitch/slipway#install-android-test-version">Full Android instructions</a></p>
   </div>
   <div class="card">
     <strong>Windows and Mac</strong>
