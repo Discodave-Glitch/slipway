@@ -58,7 +58,9 @@ ON ANDROID (test version) - nothing to install
   You need: Chrome on the phone; a USB DATA cable (some only charge), with a USB-OTG adapter if your phone needs one;
   and the official FM-1.fwsc from M-VAVE's download page saved on the phone (your way back).
   1. In Chrome on the phone go to  https://discodave-glitch.github.io/slipway/app/
-     (Optional: Chrome menu -> Add to Home screen for an app icon.)
+     For an app icon: Chrome's three-dot menu -> Add to Home screen (or Install app). The icon opens Slipway in
+     Chrome and finds the FM-1 like the normal page (tested). There is no APK: a wrapper app that only opens this
+     page was tried and Android blocked its MIDI permission, so use the Chrome shortcut.
   2. Plug the FM-1 into the phone and switch it on.
   3. Step 1 "Your FM-1": press "Find my FM-1" and allow MIDI (with SysEx) when Chrome asks. It should say
      FM-1_015 official V15, or the custom firmware that is on it now.
