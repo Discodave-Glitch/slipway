@@ -90,7 +90,7 @@ input[type=search] { width:100%; min-height:44px; padding:8px 12px; border:1px s
     <div id="list"></div>
     <button id="more" class="btn block" hidden>Show all</button>
     <button id="reload" class="btn block" hidden>Try again</button>
-    <p class="hint">The list comes from the public catalogue at <a href="https://fm1.designburgapps.com/" target="_blank" rel="noopener">fm1.designburgapps.com</a>. Every download is checked against the catalogue's checksum before it can be installed.</p>
+    <p class="hint">The list comes from the public catalogue at <a href="https://thefirmwarehub.com/" target="_blank" rel="noopener">thefirmwarehub.com</a>. Every download is checked against the catalogue's checksum before it can be installed.</p>
   </section>
 
   <section class="card" id="c-install">
@@ -125,7 +125,7 @@ input[type=search] { width:100%; min-height:44px; padding:8px 12px; border:1px s
   </details>
 
   <footer>
-    <p class="hint">Page version 6 (firmware list) (shows file details when a file is refused).</p>
+    <p class="hint">Page version 7 (firmware list) (shows file details when a file is refused).</p>
     <p><b>Tested on one real Android phone</b> (found the FM-1 and put the official firmware back). Installing a custom firmware from a phone is not tested yet. Use at your own risk; a wrong write can leave an FM-1 needing the recovery guide. Keep your own backup.</p>
     <p>Slipway Web is free software under <a href="LICENSE-GPL-3.0.txt">GPL-3.0</a>. The update protocol code is Felucca's web installer (fm1ota.js, fm1pkg.js) by Leo Kuroshita (@kurogedelic), Hügelton Instruments, GPL-3.0: <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">github.com/hugelton/Felucca</a>. M-VAVE and FM-1 are trademarks of their owners. Part of <a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">Slipway</a>.</p>
   </footer>
@@ -688,7 +688,8 @@ function writeProgress(reads, imageLength) {
   return Math.min(99, Math.round(reads / total * 100));
 }
 
-const CAT_URL = "https://fm1.designburgapps.com/catalog.json", CAT_BASE = "https://fm1.designburgapps.com/";
+const CAT_SITES = ["https://thefirmwarehub.com/", "https://fm1.designburgapps.com/"];   // the second is the old address (it redirects to the first)
+let CAT_BASE = CAT_SITES[0];
 // What each project's own README says about keys and getting back (from the desktop Slipway's notes, checked 13 Oct 2026).
 const SAFETY = {
   "hugelton/felucca": { checked: true, text: "No power-on key combination documented. HOME held opens its menu. To go back: run the web installer again, or choose 'Return to official V15'." },
@@ -771,9 +772,16 @@ const LIST_SHOWN = 8;
 async function loadCatalogue() {
   $("liststatus").textContent = "Loading the firmware list…"; $("reload").hidden = true;
   try {
-    const r = await fetch(CAT_URL, { cache: "no-cache" });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    catalogue = parseCatalogue(await r.json());
+    let data = null, lastErr = null;
+    for (const base of CAT_SITES) {
+      try {
+        const r = await fetch(base + "catalog.json", { cache: "no-cache" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        data = await r.json(); CAT_BASE = base; break;
+      } catch (err) { lastErr = err; log("catalogue at " + base + " failed: " + (err && err.message || err)); }
+    }
+    if (!data) throw lastErr || new Error("no catalogue");
+    catalogue = parseCatalogue(data);
     if (!catalogue.length) throw new Error("the list was empty");
     log("catalogue: " + catalogue.length + " firmwares");
     $("liststatus").textContent = "";
