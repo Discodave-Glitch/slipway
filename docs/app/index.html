@@ -105,6 +105,7 @@ footer { color:var(--muted); font-size:12px; padding:8px 4px; }
   </details>
 
   <footer>
+    <p class="hint">Page version 2 (shows file details when a file is refused).</p>
     <p><b>Not tested on a real phone yet.</b> Use at your own risk; a wrong write can leave an FM-1 needing the recovery guide. Keep your own backup.</p>
     <p>Slipway Web is free software under <a href="LICENSE-GPL-3.0.txt">GPL-3.0</a>. The update protocol code is Felucca's web installer (fm1ota.js, fm1pkg.js) by Leo Kuroshita (@kurogedelic), Hügelton Instruments, GPL-3.0: <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">github.com/hugelton/Felucca</a>. M-VAVE and FM-1 are trademarks of their owners. Part of <a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">Slipway</a>.</p>
   </footer>
@@ -694,6 +695,12 @@ let midi = null, devId = null, stockMeta = store.get("stock", null), stockBytes 
 let fw = null, writing = false, wakeLock = null, logText = "", notice = null, stockErr = "";
 const log = (s) => { logText += (typeof s === "string" ? s : JSON.stringify(s)) + "\n"; $("log").textContent = logText; };
 
+async function fileNote(file, bytes) {
+  let h = "";
+  try { h = (await sha256hex(bytes)).slice(0, 12); } catch (_) {}
+  return " (" + file.name.replace(/[<>&"]/g, "") + ", " + bytes.length + " bytes, fingerprint " + h + ")";
+}
+
 // ---- theme ----------------------------------------------------------------------------------
 function setTheme(t) { document.documentElement.setAttribute("data-theme", t); store.set("theme", t); }
 setTheme(store.get("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
@@ -706,6 +713,7 @@ function render() {
   $("chiptext").textContent = d.label;
   if (d.kind === "loader") $("devtext").textContent = "The FM-1 is in update mode from an earlier install that did not finish. Choose the same firmware file below and press Install to finish it.";
   const haveStock = !!(stockMeta && stockBytes);
+  $("stocktext").className = stockErr ? "danger" : "";
   $("stocktext").textContent = stockErr ? stockErr : haveStock ? "✓ Official V15 saved (" + (stockMeta.name || "FM-1.fwsc") + ", checked)." :
     (stockMeta ? "Your saved V15 is no longer in this browser. Choose FM-1.fwsc again." : "The official V15 file is not saved yet. It has to be saved before any custom firmware.");
   $("putback").disabled = writing || !haveStock;
@@ -806,21 +814,23 @@ $("find").addEventListener("click", () => refreshDevice(false));
 
 $("stockfile").addEventListener("change", async () => {
   const file = $("stockfile").files[0]; if (!file) return;
+  let bytes = null;
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    bytes = new Uint8Array(await file.arrayBuffer());
     const v = await validateStockPackage(bytes);
     stockBytes = bytes; stockMeta = { name: file.name, sha: v.sha256, size: bytes.length, at: Date.now() }; store.set("stock", stockMeta);
     try { await idbSet("stock", bytes); } catch (_) { log("could not keep the file in this browser: it is saved until you close the page"); }
     stockErr = "";
-  } catch (e) { stockErr = String(e.message || e); }
+  } catch (e) { stockErr = String(e.message || e) + (bytes ? await fileNote(file, bytes) : ""); }
   $("stockfile").value = ""; render();
 });
 
 $("fwfile").addEventListener("change", async () => {
   const file = $("fwfile").files[0]; if (!file) return;
   fw = null; notice = null; $("ack").checked = false;
-  try { fw = await checkFirmware(new Uint8Array(await file.arrayBuffer()), file.name); }
-  catch (e) { $("fwinfo").innerHTML = '<div class="box bad"></div>'; $("fwinfo").firstChild.textContent = String(e.message || e); render(); $("fwfile").value = ""; return; }
+  const fbytes = new Uint8Array(await file.arrayBuffer());
+  try { fw = await checkFirmware(fbytes, file.name); }
+  catch (e) { $("fwinfo").innerHTML = '<div class="box bad"></div>'; $("fwinfo").firstChild.textContent = String(e.message || e) + await fileNote(file, fbytes); render(); $("fwfile").value = ""; return; }
   if (devId && deviceInfo(devId).kind !== "loader" && devId.model !== fw.model) {
     $("fwinfo").innerHTML = '<div class="box bad"></div>'; $("fwinfo").firstChild.textContent = "That firmware is for " + fw.model + ", the connected device is " + devId.text + ".";
     fw = null; render(); $("fwfile").value = ""; return;
