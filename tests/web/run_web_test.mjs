@@ -27,6 +27,7 @@ function pkg(product, { loader = true, marker = true, size = 150 * 1024, seed = 
 const sha = (b) => createHash("sha256").update(b).digest("hex");
 const stock = pkg("FM-1_015", { loader: false, seed: 5 });
 const custom = pkg("FM-1_900", { seed: 2 }), custom2 = pkg("FM-1_901", { seed: 3 });
+const custom3 = pkg("FM-1_903", { seed: 7 });
 const noLoader = pkg("FM-1_902", { loader: false, seed: 4 }), noMarker = pkg("FM-1_903", { marker: false, seed: 6 });
 
 // patched copy: real code path except the stock-file check
@@ -44,11 +45,40 @@ const files = { "/index.html": [html, "text/html"], "/manifest.webmanifest": [re
 const srv = http.createServer((q, r) => { const f = files[q.url === "/" ? "/index.html" : q.url]; if (!f) { r.writeHead(404); r.end(); return; } r.writeHead(200, { "content-type": f[1] }); r.end(f[0]); }).listen(0);
 const url = `http://localhost:${srv.address().port}/`;
 
+const entry = (o) => ({ kind: "synth", author: "someone", what: "A test firmware.", ...o });
+const CATALOGUE = { updated: "now", firmwares: [
+  entry({ id: "alpha", name: "Alpha", version: "1.0", date: "2026-10-10", pkg: "fw/alpha-1.0.fwsc", size: custom.length, sha256: sha(custom), repo: "hugelton/Felucca", tag: "v1", release: "https://github.com/hugelton/Felucca/releases/tag/v1" }),
+  entry({ id: "beta", name: "Beta", version: "2.0", date: "2026-10-12", pkg: "fw/beta-2.0.fwsc", size: custom2.length, sha256: sha(custom2), kind: ["groove", "drums"], ident: "^FM-1_900$" }),
+  entry({ id: "gamma", name: "Gamma", version: "3.0", date: "2026-10-14", pkg: "fw/gamma-3.0.fwsc", size: custom3.length, sha256: sha(custom3), repo: "someone/gamma", tag: "v3", beta: true }),
+  entry({ id: "delta", name: "Delta", version: "4.0", date: "2026-10-16", pkg: "fw/delta-4.0.fwsc", size: custom.length, sha256: sha(custom2) }),
+  { id: "bad", name: "../evil", pkg: "../x.fwsc", sha256: "zz" }
+] };
+let catalogueDown = false;
+async function mockNetwork(c) {
+  await c.route("https://thefirmwarehub.com/**", (r) => {
+    const u = new URL(r.request().url());
+    const cors = { "access-control-allow-origin": "*" };
+    if (catalogueDown) return r.abort();
+    if (u.pathname === "/catalog.json") return r.fulfill({ status: 200, headers: cors, contentType: "application/json", body: JSON.stringify(CATALOGUE) });
+    const files = { "/fw/alpha-1.0.fwsc": custom, "/fw/beta-2.0.fwsc": custom2, "/fw/delta-4.0.fwsc": custom }; // gamma is not on the site: must fall back to GitHub
+    if (files[u.pathname]) return r.fulfill({ status: 200, headers: cors, body: Buffer.from(files[u.pathname]) });
+    return r.fulfill({ status: 404, headers: cors, body: "no" });
+  });
+  await c.route("https://api.github.com/**", (r) => {
+    const cors = { "access-control-allow-origin": "*" };
+    const u = r.request().url();
+    if (u.endsWith("/releases/tags/v3")) return r.fulfill({ status: 200, headers: cors, contentType: "application/json", body: JSON.stringify({ assets: [{ name: "gamma-3.0.fwsc", url: "https://api.github.com/repos/someone/gamma/releases/assets/9" }] }) });
+    if (u.endsWith("/releases/assets/9")) return r.fulfill({ status: 200, headers: cors, body: Buffer.from(custom3) });
+    return r.fulfill({ status: 404, headers: cors, body: "{}" });
+  });
+}
+
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme: "light" });
+await mockNetwork(ctx);
 await ctx.addInitScript({ content: readFileSync(path.join(HERE, "fake_midi.js"), "utf8") });
 const page = await ctx.newPage();
-const errors = []; page.on("pageerror", (e) => errors.push(String(e))); page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+const errors = []; page.on("pageerror", (e) => errors.push(String(e))); page.on("console", (m) => { if (m.type() === "error" && !/thefirmwarehub|Failed to load resource|ERR_FAILED/.test(m.text())) errors.push(m.text()); });
 const dialogs = []; page.on("dialog", (d) => { dialogs.push(d.message()); d.accept(); });
 const shot = (n) => page.screenshot({ path: path.join(OUT, n + ".png"), fullPage: true });
 const setFile = async (sel, buf, name) => { await page.setInputFiles(sel, { name, mimeType: "application/octet-stream", buffer: Buffer.from(buf) }); await page.waitForTimeout(400); };
@@ -69,6 +99,30 @@ await setFile("#fwfile", new Uint8Array(5000), "tiny.fwsc"); ok(/wrong size/.tes
 await setFile("#fwfile", noMarker, "nomarker.fwsc"); ok(/chip marker/.test(await text("#fwinfo")), "rejects a file without the AC791N marker");
 await setFile("#fwfile", noLoader, "noloader.fwsc"); ok(/No Felucca update loader/.test(await text("#fwinfo")), "rejects an unmodified non-official package (no loader)");
 ok(await page.locator("#install").isDisabled(), "Install stays disabled after a bad file");
+
+// 2b firmware list (catalogue)
+await page.waitForSelector("#list .fw");
+let names = await page.locator("#list .fw .nm").allInnerTexts();
+ok(names.length === 4 && /^Delta/.test(names[0]) && /^Alpha/.test(names[3]), "list shows the 4 valid firmwares, newest first (the unsafe entry is skipped)");
+await page.fill("#q", "drums"); await page.waitForTimeout(200);
+ok((await page.locator("#list .fw").count()) === 1 && /Beta/.test(await text("#list .fw")), "search filters the list (by type)");
+await page.fill("#q", ""); await page.waitForTimeout(200);
+await page.locator("#list .fw", { hasText: "Alpha" }).locator("button.head").click();
+ok(/own README|Not checked/.test(await text("#list .fw.open")) && /Get this firmware/.test(await text("#list .fw.open")), "opening a firmware shows its safety note and the Get button");
+await page.click("#list .fw.open .btn.primary");
+await page.waitForFunction(() => /FM-1_900/.test(document.getElementById("fwinfo").textContent), null, { timeout: 15000 });
+ok(/Alpha 1\.0/.test(await text("#fwinfo")) && /checked/.test(await text("#fwinfo")), "Get downloads, verifies the checksum and loads Alpha");
+ok(/Stock first/.test(await text("#gate")), "a downloaded custom firmware is still blocked until stock is saved");
+await page.locator("#list .fw", { hasText: "Delta" }).locator("button.head").click();
+await page.click("#list .fw.open .btn.primary");
+await page.waitForFunction(() => /checksum/.test(document.getElementById("gate").textContent), null, { timeout: 15000 });
+ok(/Couldn't get Delta/.test(await text("#gate")) && /checksum does not match/.test(await text("#gate")), "a download that fails the catalogue checksum is refused");
+await page.locator("#list .fw", { hasText: "Gamma" }).locator("button.head").click();
+await page.click("#list .fw.open .btn.primary");
+await page.waitForFunction(() => /Gamma 3\.0/.test(document.getElementById("fwinfo").textContent), null, { timeout: 15000 });
+ok(/FM-1_903/.test(await text("#fwinfo")), "a firmware missing from the catalogue site falls back to its GitHub release");
+await shot("02b-list");
+await setFile("#fwfile", custom, "custom.fwsc");
 
 // 3 stock first
 await setFile("#fwfile", custom, "custom.fwsc");
@@ -91,6 +145,8 @@ const fk = await page.evaluate(() => ({ bad: window.__fake.bad, served: window._
 ok(fk.bad === 0 && fk.id === "FM-1_900", `custom install: every read matched, device now FM-1_900 (${fk.served} reads)`);
 ok(dialogs.length === 1 && /Do not unplug/.test(dialogs[0]), "a confirmation with the do-not-unplug warning was shown");
 ok(/custom firmware/.test(await text("#chiptext")), "chip shows custom firmware");
+await page.waitForTimeout(300);
+ok((await page.locator("#list .fw", { hasText: "Beta" }).locator(".badge.on").count()) === 1, "the list marks the firmware that is on the FM-1");
 await shot("05-done-dark-pending");
 
 // 5 putback gate
@@ -116,6 +172,13 @@ await page.waitForFunction(() => document.getElementById("gate").className.inclu
 ok(/Plug it back in/.test(await text("#gate")), "unplug mid-write -> friendly resume message");
 ok(await page.locator("#install").isDisabled() === false || true, "UI usable again after error");
 await shot("07-error");
+
+// 7b catalogue unreachable
+catalogueDown = true;
+await page.reload(); await page.waitForFunction(() => /Couldn't load the firmware list/.test(document.getElementById("liststatus").textContent));
+ok(/choose it in step 4/.test(await text("#liststatus")) && await page.locator("#reload").isVisible(), "list unreachable -> plain message and a Try again button");
+catalogueDown = false; await page.click("#reload"); await page.waitForSelector("#list .fw");
+ok((await page.locator("#list .fw").count()) >= 1, "Try again loads the list");
 
 // 8 no MIDI permission
 await page.evaluate(() => sessionStorage.setItem("denyMidi", "1"));

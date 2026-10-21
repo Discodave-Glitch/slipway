@@ -31,13 +31,20 @@ walks you through getting the FM-1 running again, even from a black screen.
 1. **Install Python** (free). Download it from [python.org/downloads](https://www.python.org/downloads/) and open it.
    On the **first screen** of the installer, tick the box **"Add python.exe to PATH"** at the bottom. It is not ticked
    by default, and Slipway can't find Python without it. Then click **Install Now**.
+   **Use Python 3.12 if you can** (python.org/downloads/windows, pick a 3.12.x release). The MIDI library Slipway needs
+   (`python-rtmidi`) has ready-made builds for 3.12 but, on the one PC where this was tried, none for 3.13, and without a
+   ready-made build Windows tries to compile it and fails with "Couldn't install them" / "Unknown compiler". `install.bat`
+   picks 3.12 (then 3.11, then 3.13) when more than one Python is installed. Python from the Microsoft Store can also
+   fail with "Access is denied": use the python.org installer instead.
 2. **Download Slipway.** Get **Slipway.zip** from [Releases](../../releases) and unzip it somewhere you want to keep it
    (right-click, *Extract All*).
 3. **Double-click `install.bat`.** It sets up what it needs, makes a Desktop and Start-menu shortcut with the sailboat
    logo, and starts the app. If Windows says "Windows protected your PC", click **More info**, then **Run anyway**.
 4. Next time, just use the shortcut.
 
-> **About V16:** M-VAVE's download page now labels the official firmware *V16*. The file Slipway was tested with (`FM-1_1.fwsc`, 699,956 bytes, SHA-256 `db1642b2...edb8a`) is byte-for-byte identical to V15 and reports itself as `FM-1_015`, so Slipway accepts it as the official stock file. Slipway checks the file's contents, not its name or the number on the website. If M-VAVE ever publishes a file that really differs, Slipway will refuse it as stock until support is added.
+> **V15 or V16?** In Slipway, "stock V15" means the official FM-1 firmware file whose contents match exactly: 699,956 bytes, SHA-256 `db1642b2...edb8a`, identifier `FM-1_015` inside the file. M-VAVE's download page may label that same file **V16**: the number on the website is not the identifier inside the file. This was tested on a real Mac and FM-1 with the `FM-1.fwsc` downloaded from M-VAVE's site (labelled V16 there): Slipway accepted it, put it on the FM-1, and the FM-1 then reported `FM-1_015`. Slipway checks the file's contents, not its name or the website label. If you choose a file and Slipway refuses it, it shows the file's size and fingerprint: that means it is a different file, which has not been tested.
+
+> **Android (test version):** [Slipway Web](https://discodave-glitch.github.io/slipway/app/) runs in Chrome on Android over a USB-OTG cable. Tested on one real Android phone (Chrome, USB-OTG cable) with a real FM-1: it found the FM-1, accepted the official `FM-1.fwsc` as the way back, and put the official firmware back from custom firmware (SLOOP); the FM-1 restarted and worked normally. It also lists the same public firmware catalogue as the desktop apps (79 firmwares when tested): tap one, **Get this firmware**, and the download is checked against the catalogue's SHA-256 before it can be installed. On that phone, a custom firmware (SLOOP 2.7.1) was downloaded from the list and installed, and the official V15 was put back. Only one phone has been tried. See [README_ANDROID.md](README_ANDROID.md).
 
 ## Install (Mac)
 > Tested on a real Mac: a MacBook Air (Apple silicon, Python 3.15 from python.org): app, firmware list, FM-1 detection, put stock V15 back and install a custom firmware all worked. Not yet tried on an Intel Mac - please [open an issue](../../issues) if anything goes wrong.

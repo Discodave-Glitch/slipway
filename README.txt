@@ -4,7 +4,7 @@ Finds custom firmware for the M-VAVE FM-1 on GitHub, shows who made it and what 
 on your FM-1 from the list.
 
 WHERE THE LIST COMES FROM
-  Slipway reads the public FM-1 firmware catalogue at fm1.designburgapps.com (its catalog.json, refreshed nightly by
+  Slipway reads the public FM-1 firmware catalogue at thefirmwarehub.com (formerly fm1.designburgapps.com, which redirects there; its catalog.json, refreshed nightly by
   that site): about 33 firmwares with author, version, release page, size and SHA-256. It asks once an hour and keeps
   the answer. Files are downloaded from each project's own GitHub release and checked against the catalogue's
   SHA-256; if they differ (for example a newer release than the catalogue has seen) Slipway refuses and tells you.
@@ -17,7 +17,11 @@ FIRST TIME (Windows) - four steps  (Mac? see FIRST TIME ON A MAC below)
   1. Install Python (a free program Slipway runs on). Go to python.org/downloads and click the big yellow button.
      Open the file it downloads. On the FIRST screen of the installer, at the bottom, TICK the box
      "Add python.exe to PATH" (it is not ticked by default, and Slipway cannot find Python without it).
-     Then click "Install Now". Already installed Python without ticking it? Run the installer again, choose
+     Then click "Install Now". USE PYTHON 3.12 IF YOU CAN (python.org/downloads/windows, a 3.12.x release): the MIDI
+     library (python-rtmidi) has ready-made builds for 3.12 but, on the one PC where this was tried, none for 3.13, and
+     then "Couldn't install them" / "Unknown compiler" appears. install.bat picks 3.12, then 3.11, then 3.13.
+     Python from the Microsoft Store can fail with "Access is denied": use the python.org installer instead.
+     Already installed Python without ticking it? Run the installer again, choose
      "Modify", click Next, and tick "Add Python to environment variables".
   2. Unzip the Slipway zip somewhere you want to keep it (right-click it, "Extract All"). Don't run it from inside
      the zip.
@@ -78,7 +82,7 @@ USING IT
     "In folder" the ticked ones come first. Your choice stays when the list refreshes.
   - STUCK? Press "Stuck? Rescue..." (by the stock V15 buttons). It walks you through USB rescue: switch the FM-1 off,
     hold OCT- while switching it on, then Install now puts the stock V15 you saved back on it (the same checked
-    install as everything else). The steps come from the FM-1 firmware hub (fm1.designburgapps.com).
+    install as everything else). The steps come from the FM-1 firmware hub (thefirmwarehub.com).
   - BLACK SCREEN, FM-1 NOT FOUND? The Rescue window has "Full recovery guide...": the complete method that recovered
     a real soft-bricked FM-1 (it shows on the PC as "WL82 UBOOT1.00"). It writes the official V15 at address 0x4000 only,
     with two identical backups first and a byte-for-byte check after, using jl-uboot-tool by kagaimiq. It includes
@@ -89,9 +93,10 @@ USING IT
     firmware is on the FM-1 the next custom install (an update, or a different firmware) is refused until the stock V15
     has been put back. It offers to put stock back right then. This keeps the way back clean and avoids stale data
     from one custom firmware confusing the next. (It goes by what Slipway last installed.)
-  - ABOUT V16: M-VAVE's site now calls its official firmware V16. The file we tested (FM-1_1.fwsc, 699,956 bytes) is byte-for-byte
-    identical to V15 and reports itself as FM-1_015, so Slipway accepts it as the official stock file. Slipway checks the
-    contents, not the name. If M-VAVE publishes a file that really differs, Slipway refuses it as stock until support is added.
+  - V15 OR V16?: In Slipway, "stock V15" means the official FM-1 file whose contents match exactly (699,956 bytes, identifier FM-1_015 inside the file).
+    M-VAVE's download page may label that same file V16: the website number is not the identifier inside the file. It was tested on a real Mac and
+    FM-1 with the FM-1.fwsc from M-VAVE's site (labelled V16 there): Slipway accepted it and the FM-1 then reported FM-1_015. Slipway checks the
+    contents, not the name or the label. A file it refuses shows its size and fingerprint: that is a different file, and it is untested.
   - THE WAY BACK: "Save stock V15" keeps M-VAVE's own file. "Put stock V15 back" installs it. Do the first one first.
   GitHub allows 60 lookups an hour without signing in. Results are kept for an hour. If you hit the limit, set
   an environment variable GITHUB_TOKEN (a free GitHub token) or wait.

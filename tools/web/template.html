@@ -49,6 +49,16 @@ details.card summary { cursor:pointer; font-weight:700; color:var(--brass); min-
 pre { white-space:pre-wrap; word-break:break-word; font-size:12px; color:var(--muted); max-height:260px; overflow:auto; }
 a { color:var(--accent); }
 footer { color:var(--muted); font-size:12px; padding:8px 4px; }
+.fw { border:1px solid var(--line); border-radius:10px; margin:8px 0; background:var(--panel); }
+.fw > button.head { all:unset; box-sizing:border-box; display:block; width:100%; padding:10px 12px; cursor:pointer; min-height:48px; }
+.fw .nm { font-weight:700; }
+.fw .meta { color:var(--muted); font-size:13px; }
+.fw .badge { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:9px; border:1px solid var(--brass); color:var(--brass); margin-left:6px; vertical-align:middle; }
+.fw .badge.on { border-color:var(--ok); color:var(--ok); }
+.fw .body { padding:0 12px 12px; border-top:1px dashed var(--line); }
+.fw .body p { margin:8px 0; }
+.fw.open { border-color:var(--brass); }
+input[type=search] { width:100%; min-height:44px; padding:8px 12px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink); font:inherit; }
 [hidden] { display:none !important; }
 </style>
 </head>
@@ -70,18 +80,28 @@ footer { color:var(--muted); font-size:12px; padding:8px 4px; }
     <h2>2 &middot; Stock V15 (the way back)</h2>
     <p id="stocktext">The official V15 file is not saved yet.</p>
     <label class="btn block" id="stocklabel">Choose the official FM-1.fwsc<input id="stockfile" type="file" hidden></label>
-    <p class="hint">Get <b>FM-1.fwsc</b> (V15; M-VAVE may label it V16, it is the same file) from the <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">M-VAVE downloads</a>. It is checked byte for byte, and kept in this browser as your way back.</p>
+    <p class="hint">Get <b>FM-1.fwsc</b> (M-VAVE's site may call it V16; inside the file it is FM-1_015, 699,956 bytes) from the <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">M-VAVE downloads</a>. It is checked byte for byte, and kept in this browser as your way back.</p>
+  </section>
+
+  <section class="card" id="c-list">
+    <h2>3 &middot; Pick a firmware</h2>
+    <input id="q" type="search" placeholder="Search by name, author or type" aria-label="Search firmware">
+    <p class="hint" id="liststatus">Loading the firmware list&hellip;</p>
+    <div id="list"></div>
+    <button id="more" class="btn block" hidden>Show all</button>
+    <button id="reload" class="btn block" hidden>Try again</button>
+    <p class="hint">The list comes from the public catalogue at <a href="https://thefirmwarehub.com/" target="_blank" rel="noopener">thefirmwarehub.com</a>. Every download is checked against the catalogue's checksum before it can be installed.</p>
   </section>
 
   <section class="card" id="c-install">
-    <h2>3 &middot; Install a firmware</h2>
-    <label class="btn block" id="fwlabel">Choose a firmware file (.fwsc)<input id="fwfile" type="file" hidden></label>
+    <h2>4 &middot; Install</h2>
+    <label class="btn block" id="fwlabel">Or choose a firmware file from your phone (.fwsc)<input id="fwfile" type="file" hidden></label>
     <div id="fwinfo"></div>
     <div id="gate" class="box bad" hidden></div>
     <label class="row" id="ackrow" hidden><input id="ack" type="checkbox"><span>I have read this firmware's own README: how to enter update mode and how to get back to stock.</span></label>
     <button id="install" class="btn primary block" disabled>Install</button>
     <button id="putback" class="btn block" disabled>Put stock V15 back</button>
-    <p class="hint">Firmware files come from their authors, for example the <a href="https://github.com/hugelton/Felucca/releases" target="_blank" rel="noopener">Felucca releases</a>. Download the .fwsc to your device first, then choose it here.</p>
+    <p class="hint">Firmware is made by the authors listed, not by Slipway. Read a firmware's own page for how to enter update mode and get back to stock.</p>
   </section>
 
   <section class="card" id="c-progress" hidden>
@@ -105,7 +125,8 @@ footer { color:var(--muted); font-size:12px; padding:8px 4px; }
   </details>
 
   <footer>
-    <p><b>Not tested on a real phone yet.</b> Use at your own risk; a wrong write can leave an FM-1 needing the recovery guide. Keep your own backup.</p>
+    <p class="hint">Page version 8 (firmware list) (shows file details when a file is refused).</p>
+    <p><b>Tested on one real Android phone</b> (found the FM-1, downloaded and installed a custom firmware from the list, and put the official firmware back). Other phones are untested. Use at your own risk; a wrong write can leave an FM-1 needing the recovery guide. Keep your own backup.</p>
     <p>Slipway Web is free software under <a href="LICENSE-GPL-3.0.txt">GPL-3.0</a>. The update protocol code is Felucca's web installer (fm1ota.js, fm1pkg.js) by Leo Kuroshita (@kurogedelic), Hügelton Instruments, GPL-3.0: <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">github.com/hugelton/Felucca</a>. M-VAVE and FM-1 are trademarks of their owners. Part of <a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">Slipway</a>.</p>
   </footer>
 </main>
@@ -179,6 +200,50 @@ function writeProgress(reads, imageLength) {
   const total = Math.max(1, Math.ceil(imageLength / 512));
   return Math.min(99, Math.round(reads / total * 100));
 }
+
+const CAT_SITES = ["https://thefirmwarehub.com/", "https://fm1.designburgapps.com/"];   // the second is the old address (it redirects to the first)
+let CAT_BASE = CAT_SITES[0];
+// What each project's own README says about keys and getting back (from the desktop Slipway's notes, checked 13 Oct 2026).
+const SAFETY = {
+  "hugelton/felucca": { checked: true, text: "No power-on key combination documented. HOME held opens its menu. To go back: run the web installer again, or choose 'Return to official V15'." },
+  "charlesvestal/fm1-x0x": { checked: true, text: "No power-on key combination documented. If it keeps crashing it starts in a safe mode." },
+  "jadamsowers/fm1-fimba": { checked: true, text: "USES OCT- and OCT+ TOGETHER. Hold both for 5 seconds = update mode. Hold both at power-on = hardware calibration instead. Do not remap or lock those two buttons." }
+};
+
+function asText(v) { return typeof v === "string" ? v : (typeof v === "number" ? String(v) : ""); }
+
+// catalogue JSON -> clean entries (bad ones skipped); every value is treated as untrusted text
+function parseCatalogue(data) {
+  const out = [];
+  for (const e of (data && Array.isArray(data.firmwares) ? data.firmwares : [])) {
+    if (!e || typeof e !== "object") continue;
+    const name = asText(e.name), pkg = asText(e.pkg), sha = asText(e.sha256).toLowerCase();
+    if (!name || !pkg || !/^[0-9a-f]{64}$/.test(sha) || /(^|\/)\.\.(\/|$)/.test(pkg) || /^[a-z]+:/i.test(pkg)) continue;
+    const repo = /^[\w.-]+\/[\w.-]+$/.test(asText(e.repo)) ? asText(e.repo) : "";
+    const kind = Array.isArray(e.kind) ? e.kind.map(asText).filter(Boolean).join(", ") : asText(e.kind);
+    const link = (u) => (/^https:\/\//i.test(asText(u)) ? asText(u) : "");
+    let ident = null;
+    try { if (asText(e.ident)) ident = new RegExp(asText(e.ident), "i"); } catch (_) {}
+    out.push({ id: asText(e.id) || name, name, author: asText(e.author) || repo.split("/")[0], what: asText(e.what), kind,
+      version: asText(e.version), date: asText(e.date), pkg, size: Number(e.size) || 0, sha, repo, tag: asText(e.tag),
+      page: link(e.release) || link(e.site) || (repo ? "https://github.com/" + repo : ""), site: link(e.site), beta: !!e.beta,
+      ident, product: asText(e.product) });
+  }
+  return out.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : a.name.localeCompare(b.name)));
+}
+
+function filterEntries(list, q) {
+  const t = (q || "").trim().toLowerCase();
+  if (!t) return list;
+  return list.filter((e) => (e.name + " " + e.author + " " + e.kind + " " + e.what).toLowerCase().includes(t));
+}
+
+function onDevice(entry, id) { return !!(entry.ident && id && entry.ident.test(id.text)); }
+
+function safetyFor(entry) {
+  const s = entry.repo && SAFETY[entry.repo.toLowerCase()];
+  return s || { checked: false, text: "" };
+}
 /*LOGIC-END*/
 
 /*APP-START*/
@@ -207,6 +272,127 @@ let midi = null, devId = null, stockMeta = store.get("stock", null), stockBytes 
 let fw = null, writing = false, wakeLock = null, logText = "", notice = null, stockErr = "";
 const log = (s) => { logText += (typeof s === "string" ? s : JSON.stringify(s)) + "\n"; $("log").textContent = logText; };
 
+async function fileNote(file, bytes) {
+  let h = "";
+  try { h = (await sha256hex(bytes)).slice(0, 12); } catch (_) {}
+  return " (" + file.name.replace(/[<>&"]/g, "") + ", " + bytes.length + " bytes, fingerprint " + h + ")";
+}
+
+// ---- firmware list ----------------------------------------------------------------------------
+let catalogue = [], showAll = false, openId = null, busyId = null;
+const LIST_SHOWN = 8;
+
+async function loadCatalogue() {
+  $("liststatus").textContent = "Loading the firmware list…"; $("reload").hidden = true;
+  try {
+    let data = null, lastErr = null;
+    for (const base of CAT_SITES) {
+      try {
+        const r = await fetch(base + "catalog.json", { cache: "no-cache" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        data = await r.json(); CAT_BASE = base; break;
+      } catch (err) { lastErr = err; log("catalogue at " + base + " failed: " + (err && err.message || err)); }
+    }
+    if (!data) throw lastErr || new Error("no catalogue");
+    catalogue = parseCatalogue(data);
+    if (!catalogue.length) throw new Error("the list was empty");
+    log("catalogue: " + catalogue.length + " firmwares");
+    $("liststatus").textContent = "";
+  } catch (e) {
+    log("catalogue failed: " + (e && e.message || e));
+    catalogue = [];
+    $("liststatus").textContent = "Couldn't load the firmware list (" + (e && e.message || e) + "). You can still download a .fwsc yourself and choose it in step 4.";
+    $("reload").hidden = false;
+  }
+  renderList();
+}
+
+function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
+
+function renderList() {
+  const box = $("list"); box.textContent = "";
+  const all = filterEntries(catalogue, $("q").value);
+  const shown = (showAll || $("q").value.trim()) ? all : all.slice(0, LIST_SHOWN);
+  for (const e of shown) {
+    const card = el("div", "fw" + (openId === e.id ? " open" : ""));
+    const head = el("button", "head"); head.type = "button";
+    const nm = el("div", "nm", e.name);
+    if (onDevice(e, devId)) nm.appendChild(el("span", "badge on", "on your FM-1"));
+    if (e.beta) nm.appendChild(el("span", "badge", "beta"));
+    head.appendChild(nm);
+    head.appendChild(el("div", "meta", [e.author, e.version && ("v" + e.version), e.date, e.kind].filter(Boolean).join(" · ")));
+    head.addEventListener("click", () => { openId = openId === e.id ? null : e.id; renderList(); });
+    card.appendChild(head);
+    if (openId === e.id) {
+      const body = el("div", "body");
+      if (e.what) body.appendChild(el("p", "", e.what));
+      const sf = safetyFor(e);
+      body.appendChild(el("p", "hint", sf.text ? ("From the project's own README: " + sf.text) : "Not checked by Slipway: read the project's page for its update-mode keys and how to get back to stock before installing."));
+      body.appendChild(el("p", "hint", Math.round(e.size / 1024) + " KB · checksum " + e.sha.slice(0, 12) + "…"));
+      const get = el("button", "btn primary block", busyId === e.id ? "Downloading…" : "Get this firmware");
+      get.type = "button"; get.disabled = writing || !!busyId;
+      get.addEventListener("click", () => getFirmware(e));
+      body.appendChild(get);
+      if (e.page) { const a = el("a", "", "Open its page"); a.href = e.page; a.target = "_blank"; a.rel = "noopener"; const p = el("p", "hint"); p.appendChild(a); body.appendChild(p); }
+      card.appendChild(body);
+    }
+    box.appendChild(card);
+  }
+  $("more").hidden = showAll || !!$("q").value.trim() || all.length <= LIST_SHOWN;
+  $("more").textContent = "Show all " + all.length;
+  if (catalogue.length && !shown.length) $("liststatus").textContent = "Nothing matches that search.";
+  else if (catalogue.length) $("liststatus").textContent = "";
+}
+
+async function fetchBytes(url, headers) {
+  const r = await fetch(url, { cache: "no-store", headers });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+// the catalogue's own copy first, then the project's GitHub release; both are checked against the catalogue checksum
+async function downloadEntry(e) {
+  const reasons = [];
+  const sources = [["the catalogue site", async () => fetchBytes(CAT_BASE + e.pkg)]];
+  if (e.repo && e.tag) sources.push(["GitHub", async () => {
+    const rel = await (await fetch("https://api.github.com/repos/" + e.repo + "/releases/tags/" + encodeURIComponent(e.tag), { headers: { Accept: "application/vnd.github+json" } })).json();
+    const a = (rel.assets || []).find((x) => /\.fwsc$/i.test(x.name || ""));
+    if (!a) throw new Error("no .fwsc on that release");
+    return fetchBytes(a.url, { Accept: "application/octet-stream" });
+  }]);
+  for (const [label, run] of sources) {
+    try {
+      const bytes = await run();
+      if (e.size && bytes.length !== e.size) throw new Error("wrong size (" + bytes.length + " bytes, expected " + e.size + ")");
+      if ((await sha256hex(bytes)) !== e.sha) throw new Error("checksum does not match the catalogue");
+      log("downloaded " + e.name + " from " + label);
+      return bytes;
+    } catch (x) { reasons.push(label + ": " + (x && x.message || x)); log("download from " + label + " failed: " + (x && x.message || x)); }
+  }
+  throw new Error(reasons.join("; "));
+}
+
+async function getFirmware(e) {
+  if (busyId || writing) return;
+  busyId = e.id; notice = null; renderList(); render();
+  try {
+    const bytes = await downloadEntry(e);
+    const name = e.pkg.split("/").pop();
+    fw = await checkFirmware(bytes, name);
+    fw.title = e.name + (e.version ? " " + e.version : "");
+    $("ack").checked = false; showFw(); busyId = null; renderList(); render();
+    $("c-install").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (x) {
+    busyId = null; fw = null; showFw();
+    notice = { cls: "bad", text: "Couldn't get " + e.name + ": " + String(x && x.message || x) + ". You can open its page, download the .fwsc yourself and choose it in step 4." };
+    renderList(); render();
+    $("c-install").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+$("q").addEventListener("input", renderList);
+$("more").addEventListener("click", () => { showAll = true; renderList(); });
+$("reload").addEventListener("click", loadCatalogue);
+
 // ---- theme ----------------------------------------------------------------------------------
 function setTheme(t) { document.documentElement.setAttribute("data-theme", t); store.set("theme", t); }
 setTheme(store.get("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
@@ -219,6 +405,7 @@ function render() {
   $("chiptext").textContent = d.label;
   if (d.kind === "loader") $("devtext").textContent = "The FM-1 is in update mode from an earlier install that did not finish. Choose the same firmware file below and press Install to finish it.";
   const haveStock = !!(stockMeta && stockBytes);
+  $("stocktext").className = stockErr ? "danger" : "";
   $("stocktext").textContent = stockErr ? stockErr : haveStock ? "✓ Official V15 saved (" + (stockMeta.name || "FM-1.fwsc") + ", checked)." :
     (stockMeta ? "Your saved V15 is no longer in this browser. Choose FM-1.fwsc again." : "The official V15 file is not saved yet. It has to be saved before any custom firmware.");
   $("putback").disabled = writing || !haveStock;
@@ -233,7 +420,7 @@ function render() {
   const needAck = !!fw && !fw.official;
   $("ackrow").hidden = !needAck;
   $("install").disabled = writing || !fw || !!gate || (needAck && !$("ack").checked);
-  $("install").textContent = fw ? (fw.official ? "Install official V15" : "Install " + fw.name.replace(/\.fwsc$/i, "")) : "Install";
+  $("install").textContent = fw ? (fw.official ? "Install official V15" : "Install " + (fw.title || fw.name.replace(/\.fwsc$/i, ""))) : "Install";
   for (const id of ["find", "stockfile", "fwfile"]) $(id).disabled = writing;
   $("c-progress").hidden = !writing;
 }
@@ -243,7 +430,7 @@ function showFw() {
   if (!fw) { el.innerHTML = ""; return; }
   const kb = Math.round(fw.size / 1024);
   const safe = (s) => s.replace(/[<>&"]/g, "");
-  el.innerHTML = '<div class="box ok"><strong>' + safe(fw.name) + '</strong>' + safe(fw.product) + ' · ' + kb + ' KB · checked' +
+  el.innerHTML = '<div class="box ok"><strong>' + safe(fw.title || fw.name) + '</strong>' + safe(fw.product) + ' · ' + kb + ' KB · checked' +
     (fw.official ? ' · the unmodified official V15' : ' · Felucca update loader present') + '<br><span class="hint">sha256 ' + fw.sha.slice(0, 16) + '…</span></div>';
 }
 
@@ -270,7 +457,7 @@ async function refreshDevice(quiet) {
     if (!devId && !quiet) $("devtext").textContent = friendlyError({ code: "notfound" });
     else if (devId && deviceInfo(devId).kind !== "loader") $("devtext").textContent = "Connected.";
   } catch (e) { if (!quiet) $("devtext").textContent = String(e.message || e); log(String(e.message || e)); }
-  render();
+  render(); renderList();
 }
 
 async function keepAwake(on) {
@@ -319,21 +506,23 @@ $("find").addEventListener("click", () => refreshDevice(false));
 
 $("stockfile").addEventListener("change", async () => {
   const file = $("stockfile").files[0]; if (!file) return;
+  let bytes = null;
   try {
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    bytes = new Uint8Array(await file.arrayBuffer());
     const v = await validateStockPackage(bytes);
     stockBytes = bytes; stockMeta = { name: file.name, sha: v.sha256, size: bytes.length, at: Date.now() }; store.set("stock", stockMeta);
     try { await idbSet("stock", bytes); } catch (_) { log("could not keep the file in this browser: it is saved until you close the page"); }
     stockErr = "";
-  } catch (e) { stockErr = String(e.message || e); }
+  } catch (e) { stockErr = String(e.message || e) + (bytes ? await fileNote(file, bytes) : ""); }
   $("stockfile").value = ""; render();
 });
 
 $("fwfile").addEventListener("change", async () => {
   const file = $("fwfile").files[0]; if (!file) return;
   fw = null; notice = null; $("ack").checked = false;
-  try { fw = await checkFirmware(new Uint8Array(await file.arrayBuffer()), file.name); }
-  catch (e) { $("fwinfo").innerHTML = '<div class="box bad"></div>'; $("fwinfo").firstChild.textContent = String(e.message || e); render(); $("fwfile").value = ""; return; }
+  const fbytes = new Uint8Array(await file.arrayBuffer());
+  try { fw = await checkFirmware(fbytes, file.name); }
+  catch (e) { $("fwinfo").innerHTML = '<div class="box bad"></div>'; $("fwinfo").firstChild.textContent = String(e.message || e) + await fileNote(file, fbytes); render(); $("fwfile").value = ""; return; }
   if (devId && deviceInfo(devId).kind !== "loader" && devId.model !== fw.model) {
     $("fwinfo").innerHTML = '<div class="box bad"></div>'; $("fwinfo").firstChild.textContent = "That firmware is for " + fw.model + ", the connected device is " + devId.text + ".";
     fw = null; render(); $("fwfile").value = ""; return;
@@ -347,9 +536,9 @@ $("install").addEventListener("click", async () => {
   const gate = stockGate(fw.official, !!(stockMeta && stockBytes), installed);
   if (gate) { render(); return; }
   const warn = fw.official ? "Put the official V15 on the FM-1?\n\nOfficial V15 cannot open Felucca songs. Felucca's own page can save a complete backup first.\n\nDo not unplug anything while it writes." :
-    "Install " + fw.name + " on the FM-1?\n\nDo not unplug anything while it writes. Keep this screen on.";
+    "Install " + (fw.title || fw.name) + " on the FM-1?\n\nDo not unplug anything while it writes. Keep this screen on.";
   if (!confirm(warn)) return;
-  await runInstall(fw.image, fw.product, fw.official ? "Stock V15" : fw.name, fw.official);
+  await runInstall(fw.image, fw.product, fw.official ? "Stock V15" : (fw.title || fw.name), fw.official);
 });
 
 $("putback").addEventListener("click", async () => {
@@ -364,6 +553,7 @@ $("copylog").addEventListener("click", async () => { try { await navigator.clipb
 (async () => {
   try { const b = await idbGet("stock"); if (b && stockMeta) stockBytes = new Uint8Array(b); } catch (_) {}
   render();
+  loadCatalogue();
   if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
 /*APP-END*/
