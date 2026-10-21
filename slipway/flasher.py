@@ -73,8 +73,15 @@ def missing_modules():
 
 def install_modules(run=subprocess.run):
     """pip install of the two MIDI libraries the installer needs. Returns (ok, output)."""
-    r = run([sys.executable, "-m", "pip", "install", "mido", "python-rtmidi"], capture_output=True, text=True)
-    return r.returncode == 0, (r.stdout + r.stderr)[-1500:]
+    base = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check"]
+    r = run(base + ["--only-binary", ":all:", "mido", "python-rtmidi"], capture_output=True, text=True)
+    if r.returncode != 0:
+        # No ready-made build for this Python (32-bit, or too new/old): say so plainly instead of trying to compile.
+        bits = 64 if sys.maxsize > 2**32 else 32
+        hint = ("\n\nNo ready-made MIDI library was found for this Python (" + sys.version.split()[0] + ", " + str(bits) +
+                "-bit). Install the 64-bit Python from python.org (tick 'Add python.exe to PATH'), then run install.bat again.")
+        return False, (r.stdout + r.stderr)[-900:] + hint
+    return True, (r.stdout + r.stderr)[-1500:]
 
 
 def can_flash(file, is_stock=False):

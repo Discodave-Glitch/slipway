@@ -11,6 +11,14 @@ rem ---- 1. find Python 3.10 or newer ------------------------------------------
 set "PY="
 where py >nul 2>nul
 if %errorlevel%==0 (
+    rem prefer 3.12 / 3.11: the MIDI library has ready-made builds for them (not always for the newest Python)
+    for %%V in (3.12 3.11 3.13) do if not defined PY (
+        py -%%V -c "import sys" >nul 2>nul
+        if not errorlevel 1 set "PY=py -%%V"
+    )
+)
+if not defined PY where py >nul 2>nul
+if not defined PY if %errorlevel%==0 (
     py -3 -c "import sys; sys.exit(0 if sys.version_info >= (3,10) else 1)" >nul 2>nul
     if not errorlevel 1 set "PY=py -3"
 )
