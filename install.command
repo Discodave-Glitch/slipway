@@ -34,10 +34,19 @@ if [ -z "$PY" ]; then
 fi
 echo "  Python found: $PY"
 
+# On Apple-silicon Macs, always run natively (arm64). Started through Rosetta, the MIDI library built here cannot be loaded.
+RUN=""
+if [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ] && arch -arm64 "$PY" -c "pass" >/dev/null 2>&1; then RUN="arch -arm64"; fi
+
+# python.org's Python trusts no websites until this runs; without it Slipway cannot reach GitHub.
+for cert in /Applications/Python\ 3*/Install\ Certificates.command; do
+    [ -f "$cert" ] && { echo "  Setting up secure connections for Python..."; bash "$cert" >/dev/null 2>&1; }
+done
+
 # ---- 2. a private environment (so nothing touches the rest of your Mac) -----------------------
 if ! "$HERE/.venv/bin/python" -c "import tkinter" >/dev/null 2>&1; then
     rm -rf "$HERE/.venv"
-    "$PY" -m venv "$HERE/.venv" || { echo "  Could not make the environment."; read -r -p "  Press Return to close. " _; exit 1; }
+    $RUN "$PY" -m venv "$HERE/.venv" || { echo "  Could not make the environment."; read -r -p "  Press Return to close. " _; exit 1; }
 fi
 VPY="$HERE/.venv/bin/python"
 
@@ -47,10 +56,12 @@ echo
 
 # ---- 4. the two MIDI libraries the installer needs ------------------------------------------
 echo "  Installing the MIDI libraries (mido, python-rtmidi)..."
-if ! "$VPY" -m pip install --disable-pip-version-check --quiet mido python-rtmidi; then
+if ! $RUN "$VPY" -m pip install --disable-pip-version-check --quiet mido python-rtmidi; then
     echo
     echo "  The MIDI libraries did not install. Slipway will still start, and will offer to"
     echo "  try again the first time you press \"Launch on FM-1\". Continuing."
+    echo "  If the messages above mention a compiler: type  xcode-select --install  in Terminal, let it finish,"
+    echo "  then double-click install.command again."
 fi
 echo
 
@@ -72,7 +83,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
-printf '#!/bin/bash\ncd %q || exit 1\nexec %q -m slipway\n' "$HERE" "$VPY" > "$APP/Contents/MacOS/slipway-launch"
+printf '#!/bin/bash\ncd %q || exit 1\nexec %s %q -m slipway\n' "$HERE" "$RUN" "$VPY" > "$APP/Contents/MacOS/slipway-launch"
 chmod +x "$APP/Contents/MacOS/slipway-launch"
 touch "$APP"
 echo "  Made: $APP   (find it with Spotlight, or drag it to your Dock)"

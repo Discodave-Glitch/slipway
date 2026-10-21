@@ -37,8 +37,10 @@ walks you through getting the FM-1 running again, even from a black screen.
    logo, and starts the app. If Windows says "Windows protected your PC", click **More info**, then **Run anyway**.
 4. Next time, just use the shortcut.
 
+> **About V16:** M-VAVE's download page now labels the official firmware *V16*. The file Slipway was tested with (`FM-1_1.fwsc`, 699,956 bytes, SHA-256 `db1642b2...edb8a`) is byte-for-byte identical to V15 and reports itself as `FM-1_015`, so Slipway accepts it as the official stock file. Slipway checks the file's contents, not its name or the number on the website. If M-VAVE ever publishes a file that really differs, Slipway will refuse it as stock until support is added.
+
 ## Install (Mac)
-> Written for macOS 11+. **Not yet tested on a real Mac** - please [open an issue](../../issues) if anything goes wrong.
+> Tested on a real Mac: a MacBook Air (Apple silicon, Python 3.15 from python.org): app, firmware list, FM-1 detection, put stock V15 back and install a custom firmware all worked. Not yet tried on an Intel Mac - please [open an issue](../../issues) if anything goes wrong.
 
 1. **Install Python** from [python.org/downloads/macos](https://www.python.org/downloads/macos/) (open the installer and
    click Continue). Apple's built-in python3 is too old; Slipway skips it. Homebrew: `brew install python python-tk`.
@@ -47,6 +49,14 @@ walks you through getting the FM-1 running again, even from a black screen.
    is unsigned. Still blocked? System Settings -> Privacy & Security -> *Open Anyway*.) It sets up a private
    environment, makes the firmware folder, adds **Slipway** (with the sailboat logo) to your Applications folder and starts it.
 4. Next time, open Slipway from Spotlight or Applications.
+
+**If something goes wrong on a Mac**
+- *"could not be executed / no access privileges"*: the files lost their executable flag (this happens with GitHub's green *Code* download). Use the zip from *Releases*, or in Terminal: `cd` into the Slipway folder, then `chmod +x install.command run_slipway.command` and `./install.command`.
+- *"Apple could not verify ... is free of malware"*: the scripts are unsigned. Try to open once, then System Settings -> Privacy & Security -> *Open Anyway*. If instead it says the file *will damage your computer* with only a Bin button, do not override it: [open an issue](../../issues).
+- *"The MIDI libraries did not install" / messages about a compiler*: type `xcode-select --install` in Terminal, let it finish, then run `install.command` again.
+- *"Couldn't reach GitHub" although you are online*: python.org's Python needs its certificates step; `install.command` now runs it for you. If you installed Python afterwards, open *Applications -> Python 3.x -> Install Certificates.command*.
+- *The FM-1 is not found*: use a USB **data** cable, switch the FM-1 on first, allow the accessory if macOS asks (System Settings -> Privacy & Security -> *Allow accessories to connect*), then press *Check FM-1*.
+- On Apple-silicon Macs Slipway now always starts natively. If you see an "incompatible architecture (have 'arm64', need 'x86_64')" error, run `./install.command` again.
 
 The black-screen USB recovery tool does not support macOS: use a Windows/Linux PC or a Linux virtual machine
 (see the in-app recovery guide, *Plan C*).

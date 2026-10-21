@@ -91,6 +91,9 @@ def can_flash(file, is_stock=False):
     return None
 
 
+_ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+
+
 def _run(args, on_line=None, popen=subprocess.Popen):
     if not tool_info():
         raise library.LibraryError("The installer tool isn't downloaded yet.")
@@ -98,7 +101,7 @@ def _run(args, on_line=None, popen=subprocess.Popen):
               stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(tool_path()))
     lines = []
     for line in p.stdout:
-        line = line.rstrip()
+        line = _ANSI.sub("", line).replace("\r", "").rstrip()
         lines.append(line)
         if on_line:
             on_line(line)

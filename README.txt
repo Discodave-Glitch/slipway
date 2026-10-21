@@ -89,6 +89,9 @@ USING IT
     firmware is on the FM-1 the next custom install (an update, or a different firmware) is refused until the stock V15
     has been put back. It offers to put stock back right then. This keeps the way back clean and avoids stale data
     from one custom firmware confusing the next. (It goes by what Slipway last installed.)
+  - ABOUT V16: M-VAVE's site now calls its official firmware V16. The file we tested (FM-1_1.fwsc, 699,956 bytes) is byte-for-byte
+    identical to V15 and reports itself as FM-1_015, so Slipway accepts it as the official stock file. Slipway checks the
+    contents, not the name. If M-VAVE publishes a file that really differs, Slipway refuses it as stock until support is added.
   - THE WAY BACK: "Save stock V15" keeps M-VAVE's own file. "Put stock V15 back" installs it. Do the first one first.
   GitHub allows 60 lookups an hour without signing in. Results are kept for an hour. If you hit the limit, set
   an environment variable GITHUB_TOKEN (a free GitHub token) or wait.

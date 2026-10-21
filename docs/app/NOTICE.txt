@@ -1,0 +1,8 @@
+Slipway Web
+Copyright (c) 2026 Discodave-Glitch. Licensed GPL-3.0 (see LICENSE-GPL-3.0.txt).
+
+Includes fm1ota.js and fm1pkg.js from Felucca's web installer:
+Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hugelton Instruments, GPL-3.0-only.
+https://github.com/hugelton/Felucca
+
+The rest of Slipway (the desktop app) is MIT and lives outside docs/app/.
