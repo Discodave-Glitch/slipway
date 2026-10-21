@@ -44,7 +44,7 @@ walks you through getting the FM-1 running again, even from a black screen.
 
 > **V15 or V16?** In Slipway, "stock V15" means the official FM-1 firmware file whose contents match exactly: 699,956 bytes, SHA-256 `db1642b2...edb8a`, identifier `FM-1_015` inside the file. M-VAVE's download page may label that same file **V16**: the number on the website is not the identifier inside the file. This was tested on a real Mac and FM-1 with the `FM-1.fwsc` downloaded from M-VAVE's site (labelled V16 there): Slipway accepted it, put it on the FM-1, and the FM-1 then reported `FM-1_015`. Slipway checks the file's contents, not its name or the website label. If you choose a file and Slipway refuses it, it shows the file's size and fingerprint: that means it is a different file, which has not been tested.
 
-> **Android:** there is a phone version too, see [Install (Android)](#install-android-test-version) below. No download or installer needed.
+> **Android:** there is a phone version too, see [Install (Android)](#install-android) below. No download or installer needed.
 
 ## Install (Mac)
 > Tested on a real Mac: a MacBook Air (Apple silicon, Python 3.15 from python.org): app, firmware list, FM-1 detection, put stock V15 back and install a custom firmware all worked. Not yet tried on an Intel Mac - please [open an issue](../../issues) if anything goes wrong.
@@ -68,7 +68,7 @@ walks you through getting the FM-1 running again, even from a black screen.
 The black-screen USB recovery tool does not support macOS: use a Windows/Linux PC or a Linux virtual machine
 (see the in-app recovery guide, *Plan C*).
 
-## Install (Android, test version)
+## Install (Android)
 Nothing to install: it runs as a web page in **Chrome on Android**. Tested on one real Android phone with a real FM-1: the firmware list loaded (79 firmwares), SLOOP 2.7.1 was downloaded from the list and installed, the official V15 was put back, and the FM-1 worked normally each time. Only one phone has been tried.
 
 **You need:** Chrome on the phone, a USB **data** cable (some cables only charge) with a USB-OTG adapter if your phone needs one, and the official `FM-1.fwsc` from M-VAVE's download page saved on the phone (it is your way back).

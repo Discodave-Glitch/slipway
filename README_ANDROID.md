@@ -2,7 +2,7 @@
 
 A web app version of Slipway for the M-VAVE FM-1. It runs in **Chrome on Android** (and Chrome/Edge on a computer) using Web MIDI over USB-OTG. Nothing to install from a store.
 
-**Status: tested on one real phone.** Tested on one real Android phone (Chrome, USB-OTG cable) with a real FM-1: it found the FM-1, loaded the firmware list (79 firmwares), downloaded SLOOP 2.7.1 from the list (checksum checked), accepted the official `FM-1.fwsc` as the way back, put the official V15 back, and installed SLOOP 2.7.1 again; each time the FM-1 restarted and worked normally. Only one phone has been tried. It also passes the browser test against a simulated FM-1 (`tests/web/`). Treat it as a test version.
+**Status: tested on one real phone.** Tested on one real Android phone (Chrome, USB-OTG cable) with a real FM-1: it found the FM-1, loaded the firmware list (79 firmwares), downloaded SLOOP 2.7.1 from the list (checksum checked), accepted the official `FM-1.fwsc` as the way back, put the official V15 back, and installed SLOOP 2.7.1 again; each time the FM-1 restarted and worked normally. Only one phone has been tried. It also passes the browser test against a simulated FM-1 (`tests/web/`). Only one phone has been tried, so please [open an issue](https://github.com/Discodave-Glitch/slipway/issues) if it behaves differently on yours.
 
 ## Use it
 1. Put the files from `docs/app/` on GitHub Pages (Settings > Pages > branch `main`, folder `/docs`), then open `https://discodave-glitch.github.io/slipway/app/` in Chrome on the phone.

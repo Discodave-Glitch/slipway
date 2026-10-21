@@ -51,7 +51,7 @@ FIRST TIME ON A MAC - four steps   (tested on a real MacBook Air, Apple silicon,
   Linux PC, or a Linux virtual machine (see "Plan C" in the Full recovery guide inside Stuck? Rescue).
   To remove Slipway: delete ~/Applications/Slipway.app and this folder.
 
-ON ANDROID (test version) - nothing to install
+ON ANDROID - nothing to install
   It runs as a web page in Chrome on Android. Tested on one real Android phone with a real FM-1: the firmware list
   loaded (79 firmwares), SLOOP 2.7.1 was downloaded from the list and installed, the official V15 was put back, and
   the FM-1 worked normally each time. Only one phone has been tried.
