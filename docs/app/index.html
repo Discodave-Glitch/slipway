@@ -77,10 +77,10 @@ input[type=search] { width:100%; min-height:44px; padding:8px 12px; border:1px s
   </section>
 
   <section class="card" id="c-stock">
-    <h2>2 &middot; Stock V15 (the way back)</h2>
-    <p id="stocktext">The official V15 file is not saved yet.</p>
+    <h2>2 &middot; Stock V15 or V16 (the way back)</h2>
+    <p id="stocktext">The official stock file (V15 or V16) is not saved yet.</p>
     <label class="btn block" id="stocklabel">Choose the official FM-1.fwsc<input id="stockfile" type="file" hidden></label>
-    <p class="hint">Get <b>FM-1.fwsc</b> (the official V15: FM-1_015, 699,956 bytes. M-VAVE's site now offers only V16, which is not accepted here, so keep your V15 safe) from the <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">M-VAVE downloads</a>. It is checked byte for byte, and kept in this browser as your way back.</p>
+    <p class="hint">Get <b>FM-1.fwsc</b> (the official V15, 699,956 bytes, or V16, 718,196 bytes; M-VAVE's site now offers only V16. V16 is newly accepted and its put-back is not yet tested on a real device, so keep your V15 safe) from the <a href="https://www.m-vave.com/download" target="_blank" rel="noopener">M-VAVE downloads</a>. It is checked byte for byte, and kept in this browser as your way back.</p>
   </section>
 
   <section class="card" id="c-list">
@@ -125,7 +125,7 @@ input[type=search] { width:100%; min-height:44px; padding:8px 12px; border:1px s
   </details>
 
   <footer>
-    <p class="hint">Page version 9 (V15 or V16 note) (shows file details when a file is refused).</p>
+    <p class="hint">Page version 10 (V16 accepted as stock) (shows file details when a file is refused).</p>
     <p><b>Tested on one real Android phone</b> (found the FM-1, downloaded and installed a custom firmware from the list, and put the official firmware back). Other phones are untested. Use at your own risk; a wrong write can leave an FM-1 needing the recovery guide. Keep your own backup.</p>
     <p>Slipway Web is free software under <a href="LICENSE-GPL-3.0.txt">GPL-3.0</a>. The update protocol code is Felucca's web installer (fm1ota.js, fm1pkg.js) by Leo Kuroshita (@kurogedelic), Hügelton Instruments, GPL-3.0: <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">github.com/hugelton/Felucca</a>. M-VAVE and FM-1 are trademarks of their owners. Part of <a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">Slipway</a>.</p>
   </footer>
@@ -373,6 +373,14 @@ const BLOCKS = 20, BLK = 0x30, KEEP = 0x2F;
 const STOCK_V15_SHA256 = "db1642b2b6fa5c2cccb11ffd13878068bb28601678d3644049f99dc40e7edb8a";
 const STOCK_APP_SIZE = 0x8DFBC;
 const STOCK_V15_SIZE = 699956;
+// M-VAVE's current download (V15 is no longer offered). Same package layout and the same ota.bin as V15.
+const STOCK_V16_SHA256 = "d017fb65e70aca97ee29d944470c3515a74581df5c0576bf70de917c7b2b61d5";
+const STOCK_V16_SIZE = 718196;
+const STOCKS = [
+  { label: "V15", product: "FM-1_015", size: 699956, sha: STOCK_V15_SHA256, flashSize: 602112, appOff: 16672, appSize: 0x8DFBC },
+  { label: "V16", product: "FM-1_016", size: 718196, sha: STOCK_V16_SHA256, flashSize: 692224, appOff: 16704, appSize: 0x91FA8 },
+];
+function stockByHash(sha) { return STOCKS.find((x) => x.sha === sha) || null; }
 
 const T = new Uint16Array(256);
 for (let i = 0; i < 256; i++) {
@@ -597,17 +605,18 @@ async function sha256hex(bytes) {
   return [...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, "0")).join("");
 }
 
-// Only the user's unmodified official V15 is accepted for a return to stock.
+// Only the user's unmodified official V15 or V16 is accepted for a return to stock.
 // The digest pins every file, loader and flash layout; filenames are not evidence.
 async function validateStockPackage(bytes) {
-  if (bytes.length !== STOCK_V15_SIZE || await sha256hex(bytes) !== STOCK_V15_SHA256)
-    throw new Error("Select the unmodified official FM-1 V15 file (FM-1.fwsc).");
+  const sha = await sha256hex(bytes);
+  const st = STOCKS.find((x) => x.size === bytes.length && x.sha === sha);
+  if (!st) throw new Error("Select the unmodified official FM-1 V15 or V16 file (FM-1.fwsc).");
   const pkg = new Package(bytes);
-  if (pkg.product !== "FM-1_015" || pkg.flashFileOff !== 1044 || pkg.flashSize !== 602112 ||
-      pkg.appBase !== 16384 || pkg.appOff !== 16672 || pkg.app.size !== STOCK_APP_SIZE ||
+  if (pkg.product !== st.product || pkg.flashFileOff !== 1044 || pkg.flashSize !== st.flashSize ||
+      pkg.appBase !== 16384 || pkg.appOff !== st.appOff || pkg.app.size !== st.appSize ||
       !pkg.entries.some((e) => e.type === 100 && e.name === "ota.bin" && e.size === 19969))
     throw new Error("The official firmware has an unsupported FM-1 layout.");
-  return { product: pkg.product, image: logicalImage(bytes), sha256: STOCK_V15_SHA256 };
+  return { product: pkg.product, image: logicalImage(bytes), sha256: st.sha, label: st.label };
 }
 
 // official V15 + Felucca app -> installable package (Uint8Array)
@@ -647,17 +656,19 @@ async function checkFirmware(bytes, name) {
   try { product = productOf(bytes); } catch (e) { throw new Error("That is not an FM-1 package."); }
   if (!/^[^_]+_\d+$/.test(product)) throw new Error("That is not an FM-1 package (identity '" + product + "').");
   const sha = await sha256hex(bytes);
-  const official = sha === STOCK_V15_SHA256;
+  const official = !!stockByHash(sha);
   const hasLoader = findAscii(bytes, LOADER_MARK) >= 0;
   if (!official && !hasLoader)
-    throw new Error("No Felucca update loader in this package. Only Felucca's own packages and the unmodified official V15 (FM-1.fwsc) can be installed here.");
+    throw new Error("No Felucca update loader in this package. Only Felucca's own packages and the unmodified official V15 or V16 (FM-1.fwsc) can be installed here.");
   return { name, size: bytes.length, sha, product, official, model: product.split("_")[0], image: logicalImage(bytes) };
 }
+
+function vlab(product) { const n = parseInt(String(product).split("_")[1], 10); return isNaN(n) ? "stock" : "V" + n; }
 
 function deviceInfo(id) {
   if (!id) return { kind: "none", label: "Not connected" };
   if (/^ota-/i.test(id.model)) return { kind: "loader", label: id.text + " · update mode (unfinished)" };
-  if (id.model === "FM-1" && id.version === 15) return { kind: "official", label: id.text + " · official V15" };
+  if (id.model === "FM-1" && (id.version === 15 || id.version === 16)) return { kind: "official", label: id.text + " · official V" + id.version };
   return { kind: "custom", label: id.text + " · custom firmware" };
 }
 
@@ -893,8 +904,8 @@ function render() {
   if (d.kind === "loader") $("devtext").textContent = "The FM-1 is in update mode from an earlier install that did not finish. Choose the same firmware file below and press Install to finish it.";
   const haveStock = !!(stockMeta && stockBytes);
   $("stocktext").className = stockErr ? "danger" : "";
-  $("stocktext").textContent = stockErr ? stockErr : haveStock ? "✓ Official V15 saved (" + (stockMeta.name || "FM-1.fwsc") + ", checked)." :
-    (stockMeta ? "Your saved V15 is no longer in this browser. Choose FM-1.fwsc again." : "The official V15 file is not saved yet. It has to be saved before any custom firmware.");
+  $("stocktext").textContent = stockErr ? stockErr : haveStock ? "✓ Official " + ((stockByHash(stockMeta.sha) || {}).label || "stock") + " saved (" + (stockMeta.name || "FM-1.fwsc") + ", checked)." :
+    (stockMeta ? "Your saved stock file is no longer in this browser. Choose FM-1.fwsc again." : "The official stock file (V15 or V16) is not saved yet. It has to be saved before any custom firmware.");
   $("putback").disabled = writing || !haveStock;
   // gate for the chosen firmware
   const gate = fw ? stockGate(fw.official, haveStock, installed) : "";
@@ -907,7 +918,7 @@ function render() {
   const needAck = !!fw && !fw.official;
   $("ackrow").hidden = !needAck;
   $("install").disabled = writing || !fw || !!gate || (needAck && !$("ack").checked);
-  $("install").textContent = fw ? (fw.official ? "Install official V15" : "Install " + (fw.title || fw.name.replace(/\.fwsc$/i, ""))) : "Install";
+  $("install").textContent = fw ? (fw.official ? "Install official " + vlab(fw.product) : "Install " + (fw.title || fw.name.replace(/\.fwsc$/i, ""))) : "Install";
   for (const id of ["find", "stockfile", "fwfile"]) $(id).disabled = writing;
   $("c-progress").hidden = !writing;
 }
@@ -918,7 +929,7 @@ function showFw() {
   const kb = Math.round(fw.size / 1024);
   const safe = (s) => s.replace(/[<>&"]/g, "");
   el.innerHTML = '<div class="box ok"><strong>' + safe(fw.title || fw.name) + '</strong>' + safe(fw.product) + ' · ' + kb + ' KB · checked' +
-    (fw.official ? ' · the unmodified official V15' : ' · Felucca update loader present') + '<br><span class="hint">sha256 ' + fw.sha.slice(0, 16) + '…</span></div>';
+    (fw.official ? ' · the unmodified official ' + vlab(fw.product) : ' · Felucca update loader present') + '<br><span class="hint">sha256 ' + fw.sha.slice(0, 16) + '…</span></div>';
 }
 
 // ---- MIDI -----------------------------------------------------------------------------------
@@ -939,7 +950,7 @@ async function refreshDevice(quiet) {
     const dev = await up.find();
     if (dev) { dev.link.close(); devId = dev.id; log("device: " + dev.id.text + " (" + dev.name + ")"); } else { devId = null; if (!quiet) log("no FM-1 answered"); }
     if (devId && deviceInfo(devId).kind === "official" && installed && !installed.stock) {   // it is stock whatever we last recorded
-      installed = { name: "Stock V15", product: devId.text, stock: true }; store.set("installed", installed);
+      installed = { name: "Stock " + vlab(devId.text), product: devId.text, stock: true }; store.set("installed", installed);
     }
     if (!devId && !quiet) $("devtext").textContent = friendlyError({ code: "notfound" });
     else if (devId && deviceInfo(devId).kind !== "loader") $("devtext").textContent = "Connected.";
@@ -1022,17 +1033,17 @@ $("install").addEventListener("click", async () => {
   if (!fw || writing) return;
   const gate = stockGate(fw.official, !!(stockMeta && stockBytes), installed);
   if (gate) { render(); return; }
-  const warn = fw.official ? "Put the official V15 on the FM-1?\n\nOfficial V15 cannot open Felucca songs. Felucca's own page can save a complete backup first.\n\nDo not unplug anything while it writes." :
+  const warn = fw.official ? "Put the official " + vlab(fw.product) + " on the FM-1?\n\nOfficial stock firmware cannot open Felucca songs. Felucca's own page can save a complete backup first.\n\nDo not unplug anything while it writes." :
     "Install " + (fw.title || fw.name) + " on the FM-1?\n\nDo not unplug anything while it writes. Keep this screen on.";
   if (!confirm(warn)) return;
-  await runInstall(fw.image, fw.product, fw.official ? "Stock V15" : (fw.title || fw.name), fw.official);
+  await runInstall(fw.image, fw.product, fw.official ? "Stock " + vlab(fw.product) : (fw.title || fw.name), fw.official);
 });
 
 $("putback").addEventListener("click", async () => {
   if (writing || !stockBytes) return;
-  if (!confirm("Put the official V15 back on the FM-1?\n\nOfficial V15 cannot open Felucca songs. Felucca's own page can save a complete backup first.\n\nDo not unplug anything while it writes. Keep this screen on.")) return;
+  if (!confirm("Put the official stock firmware back on the FM-1?\n\nOfficial stock firmware cannot open Felucca songs. Felucca's own page can save a complete backup first.\n\nDo not unplug anything while it writes. Keep this screen on.")) return;
   const v = await validateStockPackage(stockBytes);
-  await runInstall(v.image, v.product, "Stock V15", true);
+  await runInstall(v.image, v.product, "Stock " + v.label, true);
 });
 
 $("copylog").addEventListener("click", async () => { try { await navigator.clipboard.writeText(logText); $("copylog").textContent = "Copied"; } catch (_) { $("copylog").textContent = "Select the text and copy"; } });

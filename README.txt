@@ -64,8 +64,8 @@ ON ANDROID - nothing to install
   2. Plug the FM-1 into the phone and switch it on.
   3. Step 1 "Your FM-1": press "Find my FM-1" and allow MIDI (with SysEx) when Chrome asks. It should say
      FM-1_015 official V15, or the custom firmware that is on it now.
-  4. Step 2 "Stock V15": press "Choose the official FM-1.fwsc" and pick the official V15 file. (It must be
-     FM-1_015, 699,956 bytes. M-VAVE's site now offers only V16, which Slipway does not accept as stock, so keep your V15 safe.)
+  4. Step 2 "Stock V15": press "Choose the official FM-1.fwsc" and pick the official V15 or V16 file. (V15: FM-1_015, 699,956 bytes. V16: FM-1_016,
+     718,196 bytes; M-VAVE's site now offers only V16. V16 is accepted, but putting it back is untested, so keep your V15 safe.)
      It is checked byte for byte and kept in the browser as your
      way back. A custom firmware cannot be installed until this is done.
   5. Step 3 "Pick a firmware": the list loads from the public catalogue. Search if you like, tap a firmware, read its
@@ -124,11 +124,10 @@ USING IT
     firmware is on the FM-1 the next custom install (an update, or a different firmware) is refused until the stock V15
     has been put back. It offers to put stock back right then. This keeps the way back clean and avoids stale data
     from one custom firmware confusing the next. (It goes by what Slipway last installed.)
-  - V15 OR V16?: These are two different files. Slipway's stock file is the official V15 (699,956 bytes, identifier FM-1_015 inside the file).
-    M-VAVE's page used to give V15 (once labelled V16); it now gives a different file, V16 (718,196 bytes, FM-1_016), and V15 is no longer offered.
-    Slipway accepts only the exact V15 as stock and refuses V16, because putting V16 back is untested. IF YOU HAVE THE V15 FILE, KEEP IT SAFE IN MORE THAN
-    ONE PLACE. A custom firmware installs from its own file; it was installed on an FM-1 running V16 in at least one real case (Windows).
-    A file Slipway refuses shows its size and fingerprint.
+  - V15 OR V16?: Two different official files; Slipway accepts both as stock, each checked byte for byte: V15 (699,956 bytes, FM-1_015)
+    and V16 (718,196 bytes, FM-1_016). M-VAVE's page used to give V15 and now gives only V16. Custom firmware has been installed on an FM-1 running
+    V16, but PUTTING V16 BACK THROUGH SLIPWAY IS NOT YET TESTED ON A REAL DEVICE; V15 is the tested way back. IF YOU HAVE THE V15 FILE, KEEP IT SAFE IN MORE
+    THAN ONE PLACE. A file Slipway refuses shows its size and fingerprint.
   - THE WAY BACK: "Save stock V15" keeps M-VAVE's own file. "Put stock V15 back" installs it. Do the first one first.
   GitHub allows 60 lookups an hour without signing in. Results are kept for an hour. If you hit the limit, set
   an environment variable GITHUB_TOKEN (a free GitHub token) or wait.

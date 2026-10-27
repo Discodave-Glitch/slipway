@@ -2,8 +2,10 @@
 
 Slipway does not re-implement the update protocol. It downloads that script once, keeps it (and its SHA-256) in its
 data folder, and runs it exactly as the project documents:  fm1_install.py FILE.fwsc --yes   and   --info.
-Slipway never passes --force. The installer's own checks (right model, loader marker, bounds, checksums) therefore
-still apply, and an interrupted install can be finished by running the same step again.
+Slipway never passes --force, with one narrow exception: the unmodified official M-VAVE V16 file, recognised by its exact
+SHA-256 (OFFICIAL_V16_SHA256). The installer only knows the V15 hash, so without --force it would refuse that one file.
+The installer's own checks (right model, bounds, checksums) still apply to everything, and an interrupted install can be
+finished by running the same step again.
 """
 import hashlib
 import os
@@ -16,6 +18,7 @@ from . import library
 
 TOOL_URL = "https://github.com/hugelton/Felucca/raw/refs/heads/main/tools/fm1_install.py"
 LOADER_MARKER = b"FELUCCA-LOADER-1"
+OFFICIAL_V16_SHA256 = "d017fb65e70aca97ee29d944470c3515a74581df5c0576bf70de917c7b2b61d5"   # M-VAVE FM-1_016, 718,196 bytes
 NEEDS = ("mido", "rtmidi")           # pip install mido python-rtmidi
 
 EXIT_TEXT = {
@@ -84,6 +87,14 @@ def install_modules(run=subprocess.run):
     return True, (r.stdout + r.stderr)[-1500:]
 
 
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def can_flash(file, is_stock=False):
     """None when this file may be flashed, otherwise the reason it may not. Mirrors the installer's own rule."""
     try:
@@ -94,7 +105,7 @@ def can_flash(file, is_stock=False):
         return str(e)
     if not has_loader and not is_stock:
         return ("This file has no Felucca loader marker, so the installer would refuse it (and Slipway never forces it). "
-                "Only the official V15 file is allowed without it.")
+                "Only the official V15 or V16 file is allowed without it.")
     return None
 
 
@@ -122,11 +133,14 @@ def device_info(on_line=None, popen=subprocess.Popen):
 
 
 def flash(file, is_stock=False, on_line=None, popen=subprocess.Popen):
-    """Installs file onto the FM-1. Returns (ok, message, lines). Never uses --force."""
+    """Installs file onto the FM-1. Returns (ok, message, lines). --force only for the exact official V16."""
     why = can_flash(file, is_stock)
     if why:
         return False, why, []
-    rc, lines = _run([file, "--yes"], on_line, popen)
+    args = [file, "--yes"]
+    if is_stock and _sha256(file) == OFFICIAL_V16_SHA256:
+        args.append("--force")        # only this exact official file: the installer does not know the V16 hash
+    rc, lines = _run(args, on_line, popen)
     return rc == 0, EXIT_TEXT.get(rc, "The installer stopped with code %d." % rc), lines
 
 
